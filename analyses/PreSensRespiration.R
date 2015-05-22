@@ -10,7 +10,7 @@
 #                                                                              #
 ################################################################################
 
-setwd('~/GitHub/microbe_traits/analyses')
+setwd('~/GitHub/MicrobialCarbonTraits/analyses')
 rm(list=ls())
 
 # Inport the function from source file
