@@ -297,3 +297,13 @@ summary(div.carbs.m)
 # Percent Decrease in BP
 HMWF001.d <- (1 - max(mean_HMWF001C, 0)/mean_HMWF001) * 100
 HMWF002.d <- (1 - max(mean_HMWF002C, 0)/mean_HMWF002) * 100
+
+# June - Aug 2015 Experiments: Carbon Traits ###################################
+# Experimental Description: Microbial Carbon Traits Experiments
+#
+#
+################################################################################
+bp.glu1 <- read.delim("./data/Production/20150625_BacterialProduction_MEM.txt", header=T)
+bp.glu2 <- read.delim("./data/Production/20150708_BacterialProduction_MEM.txt", header=T)
+bp.suc1 <- read.delim("./data/Production/20150628_BacterialProdcution_MEM.txt", header=T)
+bp.suc2 <- read.delim("./data/Production/20150709_BacterialProduction_MEM.txt", header=T)
