@@ -27,7 +27,6 @@ This repository contains open-source code, data, & text files for the microbial 
   1. Huron Mountain Wildlife Foundation Grant (# ) - Browning of freshwater ecosystems: Will terrestrial carbon loading alter the diversity and function of aquatic microbial communities?  
   2. Indiana Academy of Sciences Grant (# 00375714) - Metabolic Fate of Terrestrial Carbon Resources
 
-
 ## Contributors
 
 [Mario Muscarella](http://mmuscarella.github.io/): Ph.D. candidate in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php)
