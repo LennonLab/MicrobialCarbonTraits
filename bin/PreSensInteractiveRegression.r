@@ -120,7 +120,7 @@ PreSens.Respiration <- function(infile = " ", outfile = " ", in.format = "Rows")
 # Make Basic plot
   plot(panel$samp ~ Time, type = "b", col = "darkgrey", xlab = "Time (Hrs)",
     ylab = expression(paste("Oxygen Concentration (?M O "[2],")")),
-    par(bty="n"),xlim=c(0,max(Time)+10),ylim=c(0, 300),
+    par(bty="n"),xlim=c(0,max(Time)+1),ylim=c(0, 500),
     xaxs = "i", yaxs = "i", axes = FALSE, cex.main = 0.95,
     main = "Interactive Regression of PreSens Respiration Data")
   axis(1, col = "grey"); axis(2, col = "grey")
@@ -186,8 +186,8 @@ PreSens.Respiration <- function(infile = " ", outfile = " ", in.format = "Rows")
   rp.listbox(rpplot, variable = samp, vals = "Samples", labels = samples, action = draw)
   rp.slider(rpplot, start, action = draw, from = 0, to =  max(Time))
   rp.slider(rpplot, end, action = draw, from = 0, to =  max(Time))
-  rp.doublebutton(rpplot, var = start, step = 1, title = "Start Fine Adjustment", action = draw)
-  rp.doublebutton(rpplot, var = end, step = 1, title = "End Fine Adjustment", action = draw)
+  rp.doublebutton(rpplot, var = start, step = 0.1, title = "Start Fine Adjustment", action = draw)
+  rp.doublebutton(rpplot, var = end, step = 0.1, title = "End Fine Adjustment", action = draw)
   rp.textentry(rpplot, var = sample.name, action = draw, labels = "Sample Name", initval = "")
   rp.button(rpplot, title = "save", action = collect.data)
   rp.button(rpplot, title = "quit", action = end.session, quitbutton=T)
