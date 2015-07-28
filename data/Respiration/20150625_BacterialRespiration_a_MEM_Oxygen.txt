@@ -20,8 +20,6 @@ Report : @m01:IDENTIFICATION
 FIRMWARE
 ver.4.039.A3.ST   : 04/30/07, 09:14:36
 @m01:RDY
-
-
 Temperature : 23
 Sensor Dish : Oxygen [cO2 [µmol/L]]
 Calibration details for Oxygen
