@@ -7,7 +7,7 @@ This repository contains open-source code, data, & text files for the microbial 
 
 * **Aim 1.)** Determine metabolic profiles of HMWF culture collection using BioLog EcoPlates 
 
-* **Aim 2.)** Determine metabolic potential of HMWF culture collection using Genomic Functional Protential Evaluation
+* **Aim 2.)** Determine metabolic potential of HMWF culture collection using Genomic Functional Potential Evaluation
 
 * **Aim 3.)** Measure physiological traits including productivity, respiration, and growth efficiency using defined carbon sources
 
@@ -29,7 +29,9 @@ This repository contains open-source code, data, & text files for the microbial 
 
 ## Contributors
 
-[Mario Muscarella](http://mmuscarella.github.io/): Ph.D. candidate in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php)
+[Mario Muscarella](http://mmuscarella.github.io/): Ph.D. candidate in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). Conducted the experiments and analyzed the data
 
-[Dr. Jay Lennon](http://www.indiana.edu/~microbes/people.php): Principle Investigator, Associate Professor, Department of Biology, Indiana University, Bloomington. Head of the [Lennon Lab](http://www.indiana.edu/~microbes/people.php).
+Xia Meng Howe: Undergraduate Researchers in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). Conducted the experiments
+
+[Dr. Jay Lennon](http://www.indiana.edu/~microbes/people.php): Principle Investigator, Associate Professor, Department of Biology, Indiana University, Bloomington. Head of the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). 
 
