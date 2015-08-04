@@ -28,7 +28,7 @@
 ################################################################################
 
 PreSens.Respiration2 <- function(infile = " ", outfile = " ", start = "",
-                                 end = "", names = "", in.format = "Rows"){
+                                 end = "", name.in = "", in.format = "Rows"){
 
   # Global Options
   options(digits=6)
@@ -55,32 +55,42 @@ PreSens.Respiration2 <- function(infile = " ", outfile = " ", start = "",
       }}
   } else {
     print("File must be txt format")
-  }}
+  }
 
   # Input Transformations
   data.in$Date <- strptime(data.in[,1], format="%d.%m.%y%H:%M:%S")
   data.in <- as.data.frame(data.in)
   data.in[,3:26][data.in[,3:26] == "No Sensor"] <- NA
   for (i in 3:26){
-    data.in[,i] <- as.numeric(data.in[,i])
+    data.in[,i] <- as.numeric(data.in[, i])
   }
-  data.in$Time <- data.in$Time/3600 # Convert sec to Hrs
+  data.in$Time <- round(data.in$Time/3600, 3) # Convert sec to Hrs
 
-  # Creat Output
-  output <- as.data.frame(matrix(NA, 24, 6))
-  colnames(output) <- c("Sample", "Start", "End", "Rate (µM O2 Hr-1)", "R2", "P-value")
-
-    # Define Samples
+  # Define Samples
   samples <- as.factor(colnames(data.in)[3:26])
 
-  for (i in samples) {
+#   # Remove Empty Samples
+#   if (length(samples) != length(name.in)){
+#     stop("Your input and names do not match")
+#   } else {
+#     samples <- samples[which(name.in != "Empty")]
+#   }
+
+  # Creat Output
+  output <- as.data.frame(matrix(NA, length(samples), 6))
+  colnames(output) <- c("Sample", "Start", "End", "Rate (µM O2 Hr-1)", "R2", "P-value")
+
+  for (j in 1:length(samples)){
+    if (name.in[j] == "Empty") {
+      next
+    } else {
     # Select sample
-    samp <- data.in[, c("Data", "Time", "Temp", i)]
+    samp <- data.in[, c("Date", "Time", "Temp", toString(samples[j]))]
     # Make data subset based on start & end time
     sub <- subset(samp, Time >= start)
     sub <- subset(sub, Time <= end)
     # Linear trend line lm & coefs / stats
-    trend <- lm(sub$i ~ sub$Time)
+    trend <- lm(sub[,4] ~ sub$Time)
     a <- as.numeric(coef(trend)[1]);  b <- as.numeric(coef(trend)[2])
     r2 <- round(summary(trend)$r.squared, 3)
     p <- round(anova(trend)$'Pr(>F)'[1], 4)
@@ -88,129 +98,15 @@ PreSens.Respiration2 <- function(infile = " ", outfile = " ", start = "",
     start.2 <- signif(start, digits = 3)
     end.2 <- signif(end, digits = 3)
     rate <- signif(-b,3)
-    data.sample <- names[i]
+    data.sample <- name.in[j]
     data.start <- start.2
     data.end <- end.2
     data.rate <- rate
     data.r2 <- r2
     data.p <- p
-    data.out <- c(data.sample, data.start, data.end, data.rate, data.r2, data.p)
-
-
-  }
-
-  # Create Plotting Window
-  windows()
-  par(las=1)
-  par(fig=c(0,1,0, 1), new = F)
-  par(ps=9); par(cex.axis=c(0.9)); par(cex.lab=c(0.9)); par(oma=c(3,1,1,0.5)); par(mar=c(4,4,2,1))
-
-  # Attach Data
-  attach(data.in)
-
-  ### rpanel function ################
-  draw <- function(panel) {
-    if (panel$end > panel$start)
-    {start <- panel$start
-    end <- panel$end}
-    else
-    {start <- min(Time)
-    end <- max(Time)}
-
-    data.in$samp <- panel$samp
-    name <- panel$sample.name
-
-    # Text placement points
-    xaxis_pt <- max(Time) - 0.1*(max(Time)-min(Time))
-    yaxis_pt <- 275
-
-    # Make data subset based on start & end yrs
-    sub <- subset(data.in, Time >= start)
-    sub <- subset(sub, Time <= end)
-
-    # Linear trend line lm & coefs / stats
-    trend <- lm(sub$samp ~ sub$Time)
-    a <- as.numeric(coef(trend)[1]);  b <- as.numeric(coef(trend)[2])
-    r2 <- round(summary(trend)$r.squared, 3)
-    p <- round(anova(trend)$'Pr(>F)'[1], 4)
-    p <- ifelse (p == 0, "<0.001", p)
-    start.2 <- signif(start, digits = 3)
-    end.2 <- signif(end, digits = 3)
-    rate <- signif(-b,3)
-
-    # Make Basic plot
-    plot(panel$samp ~ Time, type = "b", col = "darkgrey", xlab = "Time (Hrs)",
-         ylab = expression(paste("Oxygen Concentration (?M O "[2],")")),
-         par(bty="n"),xlim=c(0,max(Time)+1),ylim=c(0, 500),
-         xaxs = "i", yaxs = "i", axes = FALSE, cex.main = 0.95,
-         main = "Interactive Regression of PreSens Respiration Data")
-    axis(1, col = "grey"); axis(2, col = "grey")
-
-    # Calc vals for start-end regression line & add line
-    x_vals = c(panel$start, panel$end)
-    y_vals = c(a+b*panel$start, a+b*panel$end)
-    lines(x_vals, y_vals, col= "red")
-    points(sub$Time, sub$samp, pch = 19, col = "red", type = "p")
-    text(xaxis_pt, yaxis_pt, paste("Sample: ", name))
-    text(xaxis_pt, yaxis_pt - 10, paste("Period: ", start.2, " to " , end.2, "Hrs"))
-    text(xaxis_pt, yaxis_pt - 20, bquote(Rate == .(rate) ~ uM ~ O[2] ~ Hr^-1), cex=1)
-    text(xaxis_pt, yaxis_pt - 30, bquote(R^2 == .(r2)), cex=1)
-    text(xaxis_pt, yaxis_pt - 40, paste("P-value = ", p), cex=1)
-
-    ### Outer Margin Annotation
-    my_date <- format(Sys.time(), "%m/%d/%y")
-    mtext(script, side = 1, line = .75, cex=0.8, outer = T, adj = 0)
-    mtext(my_date, side = 1, line =.75, cex = 0.8, outer = T, adj = 1)
-    data.out <- list(Start=start, End=end, Rate=rate, R2=r2, Pvalue=p)
-    panel
-  }
-
-  collect.data <- function(panel) {
-    data.in$samp <- panel$samp
-    name <- panel$sample.name
-    start <- panel$start
-    end <- panel$end
-    # Text placement points
-    xaxis_pt <- min(Time) + 0.25*(max(Time)-min(Time))
-    yaxis_pt <- 200
-    # Make data subset based on start & end yrs
-    sub <- subset(data.in, Time >= start)
-    sub <- subset(sub, Time <= end)
-    # Linear trend line lm & coefs / stats
-    trend <- lm(sub$samp ~ sub$Time)
-    a <- as.numeric(coef(trend)[1]);  b <- as.numeric(coef(trend)[2])
-    r2 <- round(summary(trend)$r.squared, 3)
-    p <- round(anova(trend)$'Pr(>F)'[1], 4)
-    p <- ifelse (p == 0, "<0.001", p)
-    start.2 <- signif(start, digits = 3)
-    end.2 <- signif(end, digits = 3)
-    rate <- signif(-b,3)
-    data.sample <- name
-    data.start <- start.2
-    data.end <- end.2
-    data.rate <- rate
-    data.r2 <- r2
-    data.p <- p
-    data.out <- c(data.sample, data.start, data.end, data.rate, data.r2, data.p)
-    write.table(as.matrix(t(data.out)), file=outfile, append=T, row.names=F, col.names=F, sep=",", quote=FALSE)
-    panel
-  }
-
-  end.session <- function(panel) {
-    dev.off(2)
-    print.noquote("Good-Bye: Computer Will Now Self-Destruct")
-    panel
-  }
-
-  # rpanel controls - enter start and end yrs for portion of full data set to be used
-  rpplot <- rp.control(title="Interactive Regression", start=0, end = max(Time), initval = samples[1])
-  rp.listbox(rpplot, variable = samp, vals = "Samples", labels = samples, action = draw)
-  rp.slider(rpplot, start, action = draw, from = 0, to =  max(Time))
-  rp.slider(rpplot, end, action = draw, from = 0, to =  max(Time))
-  rp.doublebutton(rpplot, var = start, step = 0.1, title = "Start Fine Adjustment", action = draw)
-  rp.doublebutton(rpplot, var = end, step = 0.1, title = "End Fine Adjustment", action = draw)
-  rp.textentry(rpplot, var = sample.name, action = draw, labels = "Sample Name", initval = "")
-  rp.button(rpplot, title = "save", action = collect.data)
-  rp.button(rpplot, title = "quit", action = end.session, quitbutton=T)
-
+    output[j, ] <- c(data.sample, data.start, data.end, data.rate, data.r2, data.p)
+    }}
+  output <- na.omit(output)
+  write.table(as.matrix(output), file=outfile, row.names=F, col.names=T, sep=",", quote=FALSE)
 }
+

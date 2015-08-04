@@ -1,6 +1,6 @@
 ################################################################################
 #                                                                              #
-#  Bacterial RespirationTest Script for Analysis of PreSens Respiration Data   #
+#  Bacterial Respiration Script for Analysis of PreSens Respiration Data       #
 #   Version 2.0                                                                #
 #  Written By: Mario Muscarella                                                #
 #  Last Update: 24 Jul 2015                                                    #
@@ -14,7 +14,8 @@ setwd("~/GitHub/MicrobialCarbonTraits/")
 rm(list=ls())
 
 # Inport the function from source file
-source("./bin/PreSensInteractiveRegression.r")
+source("./bin/PreSensInteractiveRegression.r") # Use to pick the time windows
+source("./bin/PreSensRespiration.R")
 
 # Samples: A1-A3 = HMWF001+C
 #          B1-B3 = HMWF002
@@ -99,4 +100,21 @@ PreSens.Respiration("./data/Respiration/20150709_BacterialRespiration_a_MEM_Oxyg
                     "./data/Respiration/20150709_BacterialRespiration_a_MEM_Output.txt")
 PreSens.Respiration("./data/Respiration/20150709_BacterialRespiration_b_MEM_Oxygen.txt",
                     "./data/Respiration/20150709_BacterialRespiration_b_MEM_Output.txt")
+
+# 7/29/2015 - Carbon Traits Experiment, M9 Base
+# Carbon Source: Protocatechuate
+# Samples A: HMWF003, HMWF013; B: HMWF015, HMWF016; C: HMWF017, HMWF022; D: HMWF036, Blank
+source("./bin/PreSensRespiration.R")
+
+PreSens.Respiration("./data/Respiration/20150729_BacterialRespiration_a_MEM_Oxygen.txt",
+                    "./data/Respiration/test")
+
+input  <-  "./data/Respiration/20150729_BacterialRespiration_a_MEM_Oxygen.txt"
+output <-  "./data/Respiration/20150729_BacterialRespiration_a_MEM_Output.txt"
+in.name <- c(rep("HMWF003", 3), rep("HMWF013", 3), rep("HMWF015", 3),
+             rep("HMWF016", 3), rep("HMWF017", 3), rep("HMWF022", 3),
+             rep("HMWF036", 3), rep("Blank", 3))
+
+PreSens.Respiration2(infile = input, outfile = output, start = 0,
+                                 end = 1, name.in = in.name)
 
