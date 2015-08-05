@@ -51,6 +51,11 @@ for (i in 1:length(count.names)){
 BR <- as.list(mget(br.names))
 Count <- as.list(mget(count.names))
 
+# Calculate Cells Per mL for each Organisms * Time
+for (i in 1:length(count.names)){
+  Count[[i]]$Conc <- Count[[i]]$Colonies * 10^(-Count[[i]]$Plate) * 10
+}
+
 # Define Resource For Each Dataset
 for (i in 1:length(br.names)){
   if (substr(br.names[i], 8, 11) == "0625"){
@@ -76,5 +81,19 @@ for (i in 1:length(br.names)){
   }
 }
 
+# Correct Negative Rates
+for (i in 1:length(br.names)){
+  for (j in 1:length(BR[[i]]$Rate)){
+    if (BR[[i]]$Rate[j] < 0) {
+      BR[[i]]$Rate[j] = 0
+      }
+  }
+}
 
+# Create New Data Frame
+BR.data <- as.data.frame(matrix(NA, 23, 15))
+colnames(BR.data) <- c("Organism")
+BR.data
+
+orgs <- c(levels())
 
