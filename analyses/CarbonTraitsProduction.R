@@ -140,40 +140,41 @@ BP.data$Conc_Pro <-ProCount[order(ProCount$Organism),4]
 
 
 # Add Raw Production
-GluProd <- rbind(BR[[1]], rbind(BR[[2]]), rbind(BR[[7]], BR[[8]]))
-GluResp <- GluResp[GluResp$Sample != "Blank", ]
-for (i in BR.data$Organism){
-  BR.data[which(BR.data$Organism == i), 5:7] <- GluResp[GluResp$Sample == i, ]$Rate
+GluProd <- rbind(BP[[1]], BP[[4]])
+GluProd <- GluProd[GluProd$Sample != "Background", ]
+GluProd <- GluProd[GluProd$Sample != "Voucher", ]
+for (i in BP.data$Organism){
+  BP.data[which(BP.data$Organism == i), 5:7] <- GluProd[GluProd$Sample == i, ]$Carbon.pM
 }
 
-SucResp <- rbind(BR[[3]], rbind(BR[[4]]), rbind(BR[[9]], BR[[10]]))
-SucResp <- SucResp[SucResp$Sample != "Blank", ]
-for (i in BR.data$Organism){
-  BR.data[which(BR.data$Organism == i), 8:10] <- SucResp[SucResp$Sample == i, ]$Rate
+SucProd <- rbind(BP[[2]], BP[[5]])
+SucProd <- SucProd[SucProd$Sample != "Background", ]
+SucProd <- SucProd[SucProd$Sample != "Voucher", ]
+for (i in BP.data$Organism){
+  BP.data[which(BP.data$Organism == i), 8:10] <- SucProd[SucProd$Sample == i, ]$Carbon.pM
 }
 
-ProResp <- rbind(BR[[5]], rbind(BR[[6]]), rbind(BR[[11]], BR[[12]]))
-ProResp <- ProResp[ProResp$Sample != "Blank", ]
-for (i in BR.data$Organism){
-  BR.data[which(BR.data$Organism == i), 11:13] <- ProResp[ProResp$Sample == i, ]$Rate
+ProProd <- rbind(BP[[3]], BP[[6]])
+ProProd <- ProProd[ProProd$Sample != "Background", ]
+ProProd <- ProProd[ProProd$Sample != "Voucher", ]
+for (i in BP.data$Organism){
+  BP.data[which(BP.data$Organism == i), 11:13] <- ProProd[ProProd$Sample == i, ]$Carbon.pM
 }
 
-# Correct for Cell Concentration and Change Units to Pico molar
-head(BR.data)
-
-BR.data[, 14:16] <- round(BR.data[,5:7]   * 10^6 / BR.data$Conc_Glu, 3)
-BR.data[, 17:19] <- round(BR.data[,8:10]  * 10^6 / BR.data$Conc_Suc, 3)
-BR.data[, 20:22] <- round(BR.data[,11:13] * 10^6 / BR.data$Conc_Pro, 3)
+# Correct for Cell Concentration
+BP.data[, 14:16] <- round(BP.data[,5:7]   / BP.data$Conc_Glu, 3)
+BP.data[, 17:19] <- round(BP.data[,8:10]  / BP.data$Conc_Suc, 3)
+BP.data[, 20:22] <- round(BP.data[,11:13] / BP.data$Conc_Pro, 3)
 
 # Calculate Average and SEM
-BR.data$Glu_mean <- round(apply(BR.data[, 14:16], 1, mean), 3)
-BR.data$Suc_mean <- round(apply(BR.data[, 17:19], 1, mean), 3)
-BR.data$Pro_mean <- round(apply(BR.data[, 20:22], 1, mean), 3)
+BP.data$Glu_mean <- round(apply(BP.data[, 14:16], 1, mean), 3)
+BP.data$Suc_mean <- round(apply(BP.data[, 17:19], 1, mean), 3)
+BP.data$Pro_mean <- round(apply(BP.data[, 20:22], 1, mean), 3)
 
-BR.data$Glu_se <- round(apply(BR.data[, 14:16], 1, sem), 3)
-BR.data$Suc_se <- round(apply(BR.data[, 17:19], 1, sem), 3)
-BR.data$Pro_se <- round(apply(BR.data[, 20:22], 1, sem), 3)
+BP.data$Glu_se <- round(apply(BP.data[, 14:16], 1, sem), 3)
+BP.data$Suc_se <- round(apply(BP.data[, 17:19], 1, sem), 3)
+BP.data$Pro_se <- round(apply(BP.data[, 20:22], 1, sem), 3)
 
 # Export Data
-write.csv(BR.data[, c(1, 14:28)], file="./data/CarbonTraits/BR_data.txt",
+write.csv(BP.data[, c(1, 14:28)], file="./data/CarbonTraits/BP_data.txt",
           quote=FALSE, row.names=FALSE)
