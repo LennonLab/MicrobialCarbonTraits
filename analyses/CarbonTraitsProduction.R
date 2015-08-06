@@ -92,16 +92,16 @@ for (i in 1:length(bp.names)){
 # BP Calculations
 for (i in 1:length(bp.names)){
   BP[[i]]$DPM <- BP[[i]]$CPM/0.64
-  BP[[i]]$DPMc <- BP[[i]]$DPM - 300/0.64 # Fix later
-  BP[[i]]$Leucine <- ((BP[[i]]$DPMc / 2.2e12) / 108) / 1000
+  BP[[i]]$DPMc <- BP[[i]]$DPM - 2000/0.64 # Fix later
+  BP[[i]]$Leucine <- ((BP[[i]]$DPMc / 2.2e12) / 153) / 1000
   # DPM*1Ci/2.2e12DPM *1mmolLeu/153Ci * 1molLeu/1000mmol
   BP[[i]]$Leucine.per <- (BP[[i]]$Leucine * (1/1) * (1/0.0015))
   # Leu incorporated * 1/time (hrs) * 1/vol (L)
   BP[[i]]$Protein <- ( BP[[i]]$Leucine.per / 0.073 ) * 131.2
   # mol leu * 1 mol protein/0.073 mol leu * 131.2 g protein/1mol protein
-  BP[[i]]$Carbon <- BP[[i]]$Protein * (1/0.63) * (0.54/1) * (1e6/1)
-  # g protein * 1 g DW/0.63 g Pro * 0.54 g C/1g DW = gC/l/hr  * 10^6 = ?gC/L/Hr
-  BP[[i]]$Carbon.uM <- BP[[i]]$Carbon * 0.083333
+  BP[[i]]$Carbon <- BP[[i]]$Protein * (1/0.63) * (0.54/1) * (10^6)
+  # g protein * 1 g DW/0.63 g Pro * 0.54 g C/1g DW = gC/l/hr  * 10^6 = ugC/L/Hr
+  BP[[i]]$Carbon.uM <- BP[[i]]$Carbon * 0.083333 # conversion of g to m
   BP[[i]]$Carbon.pM <- BP[[i]]$Carbon.uM * 10^6
 }
 
@@ -132,13 +132,6 @@ BP.data$Conc_Suc <- SucCount[order(SucCount$Organism),4]
 ProCount <- rbind(Count[[3]], Count[[6]], Count[[7]])
 BP.data$Conc_Pro <-ProCount[order(ProCount$Organism),4]
 
-
-
-
-
-
-
-
 # Add Raw Production
 GluProd <- rbind(BP[[1]], BP[[4]])
 GluProd <- GluProd[GluProd$Sample != "Background", ]
@@ -162,9 +155,9 @@ for (i in BP.data$Organism){
 }
 
 # Correct for Cell Concentration
-BP.data[, 14:16] <- round(BP.data[,5:7]   / BP.data$Conc_Glu, 3)
-BP.data[, 17:19] <- round(BP.data[,8:10]  / BP.data$Conc_Suc, 3)
-BP.data[, 20:22] <- round(BP.data[,11:13] / BP.data$Conc_Pro, 3)
+BP.data[, 14:16] <- round(BP.data[,5:7]  / (BP.data$Conc_Glu), 3)
+BP.data[, 17:19] <- round(BP.data[,8:10]  / (BP.data$Conc_Suc), 3)
+BP.data[, 20:22] <- round(BP.data[,11:13] / (BP.data$Conc_Pro), 3)
 
 # Calculate Average and SEM
 BP.data$Glu_mean <- round(apply(BP.data[, 14:16], 1, mean), 3)

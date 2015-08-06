@@ -138,12 +138,12 @@ for (i in BR.data$Organism){
   BR.data[which(BR.data$Organism == i), 11:13] <- ProResp[ProResp$Sample == i, ]$Rate
 }
 
-# Correct for Cell Concentration and Change Units to Pico molar
+# Correct for Cell Concentration and Change Units to Pico molar (divide by 5 for per ml)
 head(BR.data)
 
-BR.data[, 14:16] <- round(BR.data[,5:7]   * 10^6 / BR.data$Conc_Glu, 3)
-BR.data[, 17:19] <- round(BR.data[,8:10]  * 10^6 / BR.data$Conc_Suc, 3)
-BR.data[, 20:22] <- round(BR.data[,11:13] * 10^6 / BR.data$Conc_Pro, 3)
+BR.data[, 14:16] <- round(BR.data[,5:7]   * 10^6 / ((BR.data$Conc_Glu) * 5) , 3)#/ 0.005
+BR.data[, 17:19] <- round(BR.data[,8:10]  * 10^6 / ((BR.data$Conc_Suc) * 5), 3) #/ 0.005
+BR.data[, 20:22] <- round(BR.data[,11:13] * 10^6 / ((BR.data$Conc_Pro)* 5), 3) #/ 0.005
 
 # Calculate Average and SEM
 BR.data$Glu_mean <- round(apply(BR.data[, 14:16], 1, mean), 3)
