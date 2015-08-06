@@ -123,7 +123,7 @@ PreSens.Respiration2(infile = input, outfile = output, start = 0,
 #           C: HMWF018, HMWF029; D: HMWF036, Blank
 input   <- "./data/Respiration/20150709_BacterialRespiration_a_MEM_Oxygen.txt"
 output  <- "./data/Respiration/20150709_BacterialRespiration_a_MEM_Output.txt"
-in.name <- c(rep("HWMF004", 3), rep("HMWF014", 3), rep("HMWF016", 3),
+in.name <- c(rep("HMWF004", 3), rep("HMWF014", 3), rep("HMWF016", 3),
              rep("HMWF017", 3), rep("HMWF018", 3), rep("HMWF029", 3),
              rep("HMWF036", 3), rep("Blank", 3))
 PreSens.Respiration2(infile = input, outfile = output, start = 0.1,
@@ -147,7 +147,7 @@ PreSens.Respiration2(infile = input, outfile = output, start = 0,
 #         C: HMWF017, HMWF022; D: HMWF036, Blank
 input  <-  "./data/Respiration/20150729_BacterialRespiration_a_MEM_Oxygen.txt"
 output <-  "./data/Respiration/20150729_BacterialRespiration_a_MEM_Output.txt"
-in.name <- c(rep("HMWF003", 3), rep("HMWF013", 3), rep("HMWF015", 3),
+in.name <- c(rep("HMWF003", 3), rep("HMWF014", 3), rep("HMWF015", 3),
              rep("HMWF016", 3), rep("HMWF017", 3), rep("HMWF022", 3),
              rep("HMWF036", 3), rep("Blank", 3))
 PreSens.Respiration2(infile = input, outfile = output, start = 0,
@@ -160,7 +160,7 @@ PreSens.Respiration2(infile = input, outfile = output, start = 0,
 input  <-  "./data/Respiration/20150730_BacterialRespiration_a_MEM_Oxygen.txt"
 output <-  "./data/Respiration/20150730_BacterialRespiration_a_MEM_Output.txt"
 in.name <- c(rep("HMWF004", 3), rep("HMWF008", 3), rep("HMWF009", 3),
-             rep("HHMWF018", 3), rep("HMWF023", 3), rep("HMWF035", 3),
+             rep("HMWF018", 3), rep("HMWF023", 3), rep("HMWF035", 3),
              rep("HMWF029", 3), rep("Blank", 3))
 PreSens.Respiration2(infile = input, outfile = output, start = 0,
                      end = 1, name.in = in.name)
