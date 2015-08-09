@@ -44,37 +44,47 @@ BGE$BGE_Pro <- round(BP$Pro_mean / (BP$Pro_mean + BR$Pro_mean), 5)
 
 
 # Import Phylogeny (already rooted)
-tree <- read.tree("./data/Phylogeny/HMWF.proteo.cons.nwk")
-
+tree <- read.tree("./data/Phylogeny/RAxML_1000bootstrap.HMWF.consensus.tre")
+tree <- read.tree("./data/Phylogeny/RAxML_bootstrap1000cons.tre")
+plot(tree)
 # Keep Rooted but Drop Outgroup Branch
 tree <- drop.tip(tree, "Aquifex")
 
 # Make Plot
 # Define Color Palette
-mypalette <- colorRampPalette(brewer.pal(9, "YlOrRd"))
+mypalette <- colorRampPalette(brewer.pal(9, "YlOrRd"), bias = 2)
 
 # Map Carbon Respiration Traits {adephylo}
 Resp <- BR[,c(11, 13, 15)]
 Resp[is.na(Resp)] <- 0
-Resp[Resp > 500] <- 500
+Resp[Resp > 100] <- 100
 colnames(Resp) <- c("Glucose", "Succinate", "Protocatechuate")
 rownames(Resp) <- BR$Organism
+
+# Reorder Resp
+Resp <- as.matrix(Resp[match(tree$tip.label, row.names(Resp)), ])
 
 par(mar=c(1,1,1,2) + 0.1)
 x <- phylo4d(tree, Resp)
 table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
               cex.label = 0.8, scale = FALSE, use.edge.length = FALSE,
               edge.color = "black", edge.width = 3, box = FALSE,
-              col=mypalette(25), pch = 15, cex.symbol = 2.5,
-              ratio.tree = 0.60, cex.legend = 1.5, center = FALSE)
+              col=mypalette(100), pch = 15, cex.symbol = 2.5,
+              ratio.tree = 0.60, cex.legend = 1.5, center = FALSE,
+              )
+text(8, -1, "pmole C cell-1, hr-1", cex = 1.2)
 
 # Map Carbon Production Traits {adephylo}
 Prod <- BP[,c(11, 13, 15)]
 Prod[is.na(Prod)] <- 0
 Prod[Prod < 0] <- 0
-Prod[Prod > 10] <- 10
+Prod[Prod > 5] <- 5
 colnames(Prod) <- c("Glucose", "Succinate", "Protocatechuate")
 rownames(Prod) <- BP$Organism
+
+# Reorder Prod
+Prod <- as.matrix(Prod[match(tree$tip.label, row.names(Prod)), ])
+
 
 par(mar=c(1,1,1,2) + 0.1)
 x <- phylo4d(tree, Prod)
@@ -84,6 +94,8 @@ table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
               col=mypalette(25), pch = 15, cex.symbol = 2.5,
               ratio.tree = 0.60, cex.legend = 1.5, center = FALSE)
 
+text(8, -1, "pmole C cell-1, hr-1", cex = 1.2)
+
 # Map Carbon BGE Traits {adephylo}
 BGE2 <- BGE[,2:4]
 BGE2[is.na(BGE2)] <- 0
@@ -91,6 +103,10 @@ BGE2[BGE2 < 0] <- 0
 BGE2[BGE2 > 0.9] <- 0
 colnames(BGE2) <- c("Glucose", "Succinate", "Protocatechuate")
 rownames(BGE2) <- BGE$Organism
+
+# Reorder BGE
+BGE2 <- as.matrix(BGE2[match(tree$tip.label, row.names(BGE2)), ])
+
 
 par(mar=c(1,1,1,2) + 0.1)
 x <- phylo4d(tree, BGE2)
@@ -101,6 +117,56 @@ table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
               ratio.tree = 0.60, cex.legend = 1.5, center = FALSE)
 
 
+# Hypothesis Testing
+
+traits <- cbind(Resp, Prod, BGE2)
+
+# Import Phylogeny (already rooted)
+tree1000 <- read.tree("./data/Phylogeny/RAxML_1000bootstrap.HMWF.tre")
+
+# Reorder Traits
+tree1000[[1]] <- drop.tip(tree1000[[1]], "Aquifex")
+traits <- as.matrix(traits[match(tree1000[[1]]$tip.label, row.names(traits)), ])
+
+
+
+
+# Blomberg's K - Resp
+bloms1 <- matrix(NA, 1000, 6)
+colnames(bloms1) <- c("K_g", "K_s", "K_p", "P_g", "P_s", "P_p")
+for (i in 1:3){
+  for (j in 1:1000){
+    tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
+    tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
+    output <- phylosignal(traits[, i], tree1000[[j]])
+    bloms1[j, i] <- output[[1]]
+    bloms1[j, 3+i] <- output[[4]]
+}}
+
+avgK1 <- colMeans(bloms1)[1:3]
+avgP <- colMeans(bloms1)[4:6]
+length(which(bloms1[, 4] > 0.05)) / 1000
+length(which(bloms1[, 5] > 0.05)) / 1000
+length(which(bloms1[, 5] > 0.05)) / 1000
+
+
+# Blomberg's K - Prod
+bloms2 <- matrix(NA, 1000, 6)
+colnames(bloms2) <- c("K_g", "K_s", "K_p", "P_g", "P_s", "P_p")
+for (i in 1:3){
+  for (j in 1:1000){
+    tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
+    tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
+    output <- phylosignal(traits[, 3 + i], tree1000[[j]])
+    bloms2[j, i] <- output[[1]]
+    bloms2[j, 3+i] <- output[[4]]
+  }}
+
+avgK1 <- colMeans(bloms2)[1:3]
+avgP <- colMeans(bloms2)[4:6]
+length(which(bloms2[, 4] > 0.05)) / 1000
+length(which(bloms2[, 5] > 0.05)) / 1000
+length(which(bloms2[, 5] > 0.05)) / 1000
 
 
 
@@ -109,22 +175,14 @@ table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
 
 
 
+# Mixed Model
+test <- melt(BGE2)
+model <- aov(test$value ~ as.factor(test$X1) + as.factor(test$X2))
+
+# Variance Partitioning
 
 
-
-
-# Visualize Trees With Different Levels of  Phylogenetic Signal {geiger}
-nj.lambda.5 <- rescale(nj.rooted, "lambda", 0.5)
-nj.lambda.0 <- rescale(nj.rooted, "lambda", 0)
-
-layout(matrix(c(1,2,3), 1, 3), width = c(1, 1, 1))
-par(mar=c(1,0.5,2,0.5)+0.1)
-plot(nj.rooted, main = "lambda = 1", cex = 0.7, adj = 0.5)
-plot(nj.lambda.5, main = "lamba = 0.5", cex = 0.7, adj = 0.5)
-plot(nj.lambda.0, main = "lamba = 0",  cex = 0.7, adj = 0.5)
-
-
-
+# Crap I haven't worked out
 
 
 
