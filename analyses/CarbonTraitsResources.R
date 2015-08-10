@@ -30,7 +30,7 @@ require("RColorBrewer")
 copynum <- read.delim("./data/CopyNumber/16SrRNA.txt", row.names=1)
 pathways <- read.delim("./data/Maple/pathways.txt", row.names=1)
 maple <- read.delim("./data/Maple/maple.txt", row.names=1)
-# ecoplate <- read.delim()
+ecoplate <- read.delim("./data/EcoPlate/eco.data.txt", row.names=1)
 
 
 # Import Phylogeny (already rooted)
@@ -72,17 +72,8 @@ phylosignal(as.matrix(EX), tree)
 phylosig(tree,as.matrix(EX),method="lambda",test=T)
 
 
-
-
-
-
-
-
-
-
-
 # Genomic and Ecoplate Plot
-traits <- cbind(copynum, pathways)
+traits <- cbind(pathways, ecoplate, copynum)
 
 # Reorder Traits
 traits <- as.matrix(traits[match(tree$tip.label, row.names(traits)), ])
