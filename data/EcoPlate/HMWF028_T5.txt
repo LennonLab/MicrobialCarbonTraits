@@ -1,0 +1,41 @@
+
+
+Software Version	2.01.14
+
+
+
+Experiment File Path:	C:\Users\lennonlab\Documents\Xia Meng\Ecolog\Ecolog5_T5.xpt
+Protocol File Path:	C:\Users\lennonlab\Documents\Xia Meng\Ecolog.prt
+
+
+
+Plate Number	Plate 3
+Date	5/24/2013
+Time	12:18:30 PM
+Reader Type:	Synergy Mx
+Reader Serial Number:	219512
+Reading Type	Reader
+
+Procedure Details
+
+Plate Type	96 WELL PLATE (Use plate lid)
+Read	Absorbance Endpoint
+	Full Plate
+	Wavelengths:  590
+	Read Speed: Normal,  Delay: 100 msec,  Measurements/Data Point: 8
+
+
+
+Actual Temperature:	22.9
+
+Results
+	1	2	3	4	5	6	7	8	9	10	11	12
+A	0.772	0.606	0.503	0.808	0.637	0.623	0.487	0.790	0.643	0.552	0.500	0.827	590
+B	2.030	0.653	0.662	2.184	2.108	0.577	0.590	2.146	2.048	0.543	0.597	2.137	590
+C	1.845	0.719	0.266	1.783	2.047	0.722	0.255	1.744	2.054	0.649	0.285	1.636	590
+D	1.800	1.250	0.441	1.500	1.815	1.226	0.438	1.471	1.815	1.228	0.429	1.387	590
+E	2.135	0.851	0.753	1.626	2.150	0.900	0.802	1.681	2.041	0.866	0.781	1.554	590
+F	2.703	0.681	0.440	2.535	2.629	0.745	0.460	2.563	2.425	0.664	0.433	2.650	590
+G	0.813	1.957	1.697	0.523	0.832	1.936	1.722	0.525	0.823	1.919	1.801	0.564	590
+H	0.828	2.548	0.403	0.476	0.782	2.598	0.386	0.472	0.755	2.734	0.391	0.508	590
+
