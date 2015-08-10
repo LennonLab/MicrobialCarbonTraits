@@ -1,0 +1,8 @@
+water	carbohydrate	carboxylic acid	amino acid	water	carbohydrate	carboxylic acid	amino acid	water	carbohydrate	carboxylic acid	amino acid
+ester	carbohydrate	carboxylic acid	amino acid	ester	carbohydrate	carboxylic acid	amino acid	ester	carbohydrate	carboxylic acid	amino acid
+polymer	carbohydrate	carboxylic acid	amino acid	polymer	carbohydrate	carboxylic acid	amino acid	polymer	carbohydrate	carboxylic acid	amino acid
+polymer	carbohydrate	carboxylic acid	amino acid	polymer	carbohydrate	carboxylic acid	amino acid	polymer	carbohydrate	carboxylic acid	amino acid
+polymer	carbohydrate	carboxylic acid	amino acid	polymer	carbohydrate	carboxylic acid	amino acid	polymer	carbohydrate	carboxylic acid	amino acid
+polymer	carboxylic acid	carboxylic acid	amino acid	polymer	carboxylic acid	carboxylic acid	amino acid	polymer	carboxylic acid	carboxylic acid	amino acid
+carbohydrate	phosphorylated	carboxylic acid	amine	carbohydrate	phosphorylated	carboxylic acid	amine	carbohydrate	phosphorylated	carboxylic acid	amine
+carbohydrate	phosphorylated	carboxylic acid	amine	carbohydrate	phosphorylated	carboxylic acid	amine	carbohydrate	phosphorylated	carboxylic acid	amine
