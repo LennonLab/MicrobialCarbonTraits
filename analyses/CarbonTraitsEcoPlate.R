@@ -65,7 +65,8 @@ for (i in strains){
   }
 }
 
-write.csv(eco.data, "./data/EcoPlate/eco.data.txt", quote=FALSE, row.names=FALSE)
+write.table(eco.data, "./data/EcoPlate/eco.data.txt", quote=FALSE,
+            row.names=FALSE, sep="\t")
 
 
 
