@@ -76,6 +76,66 @@ text(11.5, 7.5, "Pseu.", cex=1)
 rect(20, -5, 30, 0.1, col="white", border="white")
 text(24.5, -1, "Example")
 
+# Prediction Graphs
+# Make Example Plot For Talks
+Res1 <- as.data.frame(rep(20, 23))
+Res2 <- as.data.frame(rep(10, 23))
+Res3 <- as.data.frame(rep(2, 23))
+Res <- data.frame(Res1, Res2, Res3)
+colnames(Res) <- c("Resource A", "Resource B", "Resource C")
+row.names(Res) <- row.names(copynum)
+
+par(mar=c(1,1,1,2) + 0.1)
+x <- phylo4d(tree, Res)
+table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
+              cex.label = 0.8, scale = FALSE, use.edge.length = FALSE,
+              edge.color = "black", edge.width = 3, box = FALSE,
+              col=mypalette(25), pch = 15, cex.symbol = 2.5,
+              ratio.tree = 0.6, cex.legend = 1.5, center = FALSE,
+              show.var.label=TRUE)
+
+text(18.5, 22.5, expression(alpha), cex=1.5)
+text(18.5, 19.5, expression(beta), cex=1.5)
+text(4, 13, expression(gamma), cex=1.5)
+text(11.5, 17, "Xan.", cex=1)
+text(11.5, 12, "Aero.", cex=1)
+text(11.5, 7.5, "Pseu.", cex=1)
+mtext(expression(paste("pmole C cell"^-1, "hr"^-1, "               ")), side = 1, cex = 1.2)
+
+
+
+# Make Example Plot For Talks
+Res1 <- as.data.frame(rev(c(rep(3, 3), rep(5, 3), rep(12, 3), rep(8, 5), rep(18, 9))))
+Res2 <- as.data.frame(rev(c(rep(3, 3), rep(5, 3), rep(12, 3), rep(8, 5), rep(18, 9))))
+Res3 <- as.data.frame(rev(c(rep(3, 3), rep(5, 3), rep(12, 3), rep(8, 5), rep(18, 9))))
+Res <- data.frame(Res1, Res2, Res3)
+colnames(Res) <- c("Resource A", "Resource B", "Resource C")
+row.names(Res) <- row.names(copynum)
+
+par(mar=c(1,1,1,2) + 0.1)
+x <- phylo4d(tree, Res)
+table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
+              cex.label = 0.8, scale = FALSE, use.edge.length = FALSE,
+              edge.color = "black", edge.width = 3, box = FALSE,
+              col=mypalette(25), pch = 15, cex.symbol = 2.5,
+              ratio.tree = 0.6, cex.legend = 1.5, center = FALSE,
+              show.var.label=TRUE)
+
+text(18.5, 22.5, expression(alpha), cex=1.5)
+text(18.5, 19.5, expression(beta), cex=1.5)
+text(4, 13, expression(gamma), cex=1.5)
+text(11.5, 17, "Xan.", cex=1)
+text(11.5, 12, "Aero.", cex=1)
+text(11.5, 7.5, "Pseu.", cex=1)
+mtext(expression(paste("pmole C cell"^-1, "hr"^-1, "               ")), side = 1, cex = 1.2)
+
+
+
+
+
+
+
+
 # Example of phylosignal
 phylosignal(as.matrix(EX), tree)
 phylosig(tree,as.matrix(EX),method="lambda",test=T)
@@ -140,7 +200,7 @@ text(4, 13, expression(gamma), cex=1.5)
 text(11.5, 17, "Xan.", cex=1)
 text(11.5, 12, "Aero.", cex=1)
 text(11.5, 7.5, "Pseu.", cex=1)
-text(10, -2.8, "Niche Breadth")
+mtext(expression(paste("pmole C cell"^-1, "hr"^-1, "                ")), side = 1, cex = 1.2)
 
 
 # Import Phylogeny (already rooted)
