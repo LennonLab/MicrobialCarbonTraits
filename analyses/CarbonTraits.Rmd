@@ -1,0 +1,33 @@
+---
+title: "Microbial Carbon Traits"
+author: "Mario E. Muscarella"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+   - \usepackage{array}
+   - \usepackage{graphics}
+output: 
+  pdf_document:
+    fig_caption: true
+---
+
+# Initial Setup
+```{r results='hide', message=FALSE}
+rm(list=ls())
+getwd()
+setwd("~/GitHub/MicrobialCarbonTraits/analyses")
+se <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+opar <- par(no.readonly = TRUE)  # Saves plot defaults
+```
+
+# Figure 1: Phylogenetic Tree
+
+# Figure 2: BioLog and MAPLE Functional Profiles
+
+# Figure 3: Growth Rates
+
+# Table 1: Other Physiological Features
+
+# Figure 4: Bacterial Production and Respiration
+
+# Figure 5: Bacterial Growth Efficiency
+
