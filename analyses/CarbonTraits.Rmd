@@ -16,18 +16,379 @@ rm(list=ls())
 getwd()
 setwd("~/GitHub/MicrobialCarbonTraits/analyses")
 se <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+sem <- function(x){sd(na.omit(x))/sqrt(length(na.omit(x)))}
+
+# Save Default Plot Settings
 opar <- par(no.readonly = TRUE)  # Saves plot defaults
+
+# Required Packages
+#require("muscle");require("seqinr");require("caper")
+require("ape");require("phylobase");require("adephylo")
+require("geiger");require("picante")
+require("stats");require("RColorBrewer")
 ```
 
-# Figure 1: Phylogenetic Tree
+# Isolate Information
+## Figure 1: Phylogenetic Tree
+Do I want to make a really nice tree or just use the species tree in the next figure
+```{r, results = "hide"}
+# Import Phylogenetic Tree
 
-# Figure 2: BioLog and MAPLE Functional Profiles
 
-# Figure 3: Growth Rates
 
-# Table 1: Other Physiological Features
+```
 
-# Figure 4: Bacterial Production and Respiration
+# Bacterial Growth Efficiency
+```{r}
+# Import Data
+BP <- read.csv(file="../data/CarbonTraits/BP_data.txt")
+BR <- read.csv(file="../data/CarbonTraits/BR_data.txt")
 
-# Figure 5: Bacterial Growth Efficiency
+BP$Organism == BR$Organism
+
+BGE <- as.data.frame(matrix(NA, 23, 4))
+colnames(BGE) <- c("Organism", "BGE_Glu", "BGE_Suc", "BGE_Pro")
+BGE$Organism <- BP$Organism
+
+BGE$BGE_Glu <- round(BP$Glu_mean / (BP$Glu_mean + BR$Glu_mean), 5)
+BGE$BGE_Suc <- round(BP$Suc_mean / (BP$Suc_mean + BR$Suc_mean), 5)
+BGE$BGE_Pro <- round(BP$Pro_mean / (BP$Pro_mean + BR$Pro_mean), 5)
+
+# Import Phylogeny (already rooted)
+tree <- read.tree("../data/Phylogeny/HMWF.proteo.nwk.tre")
+
+# Keep Rooted but Drop Outgroup Branch
+tree <- drop.tip(tree, "Aquifex")
+tree$edge.length <- tree$edge.length + 10^-7
+
+# Carbon Respiration Traits {adephylo}
+Resp <- BR[,c(11, 13, 15)]
+Resp[is.na(Resp)] <- 0
+Resp[Resp > 30] <- 30
+colnames(Resp) <- c("Glucose", "Succinate", "Protocatechuate")
+rownames(Resp) <- BR$Organism
+
+# Reorder Resp
+Resp <- as.matrix(Resp[match(tree$tip.label, row.names(Resp)), ])
+
+# Carbon Production Traits
+Prod <- BP[,c(11, 13, 15)]
+Prod[is.na(Prod)] <- 0
+Prod[Prod < 0] <- 0
+Prod[Prod > 10] <- 10
+colnames(Prod) <- c("Glucose", "Succinate", "Protocatechuate")
+rownames(Prod) <- BP$Organism
+
+# Reorder Prod
+Prod <- as.matrix(Prod[match(tree$tip.label, row.names(Prod)), ])
+
+# Carbon BGE Traits
+BGE2 <- BGE[,2:4]
+BGE2[is.na(BGE2)] <- 0
+BGE2[BGE2 < 0] <- 0
+BGE2[BGE2 > 0.9] <- 0
+colnames(BGE2) <- c("Glu.", "Suc.", "Pro.")
+rownames(BGE2) <- BGE$Organism
+
+# Reorder BGE
+BGE2 <- as.matrix(BGE2[match(tree$tip.label, row.names(BGE2)), ])
+```
+
+##Figure 2: Bacterial Growth Efficiency
+```{r, results='hide'}
+png(filename="../figures/Figure2.png",
+    width = 1200, height = 1200, res = 96*2, bg = "white")
+par(opar)
+
+# Define Color Palette
+mypalette <- colorRampPalette(brewer.pal(9, "YlOrRd"), bias = 2)
+
+# Make Plot
+par(mar=c(1,1,1,7) + 0.1)
+x <- phylo4d(tree, tip.data = BGE2)
+table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
+              cex.label = 0.8, scale = FALSE, use.edge.length = FALSE,
+              edge.color = "black", edge.width = 3, box = FALSE,
+              col=mypalette(25), pch = 15, cex.symbol = 2.5,
+              ratio.tree = 0.7, cex.legend = 1.25, center = FALSE,
+              show.tip.label = FALSE)
+mtext(BGE$Organism, side =4, las = 1, at = c(1:23), cex = 0.8)
+text(18.5, 22.5, expression(alpha), cex=1.5)
+text(18.5, 19.5, expression(beta), cex=1.5)
+text(4, 13, expression(gamma), cex=1.5)
+text(11.5, 17, "Xan.", cex=1)
+text(11.5, 12, "Aero.", cex=1)
+text(11.5, 7.5, "Pseu.", cex=1)
+
+
+dev.off() # this writes plot to folder
+graphics.off() # shuts down open devices
+```
+
+```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="BGE"}
+img <- readPNG("../figures/Figure2.png")
+grid.raster(img)
+```
+
+## Statistical Tests
+```{r}
+# Hypothesis Testing
+traits <- cbind(Resp, Prod, BGE2)
+
+# Import Phylogeny (already rooted)
+tree1000 <- read.tree("../data/Phylogeny/RAxML_1000bootstrap.HMWF.tre")
+
+# Reorder Traits
+tree1000[[1]] <- drop.tip(tree1000[[1]], "Aquifex")
+traits <- as.matrix(traits[match(tree1000[[1]]$tip.label, row.names(traits)), ])
+
+# Blomberg's K - BGE
+bloms3 <- matrix(NA, 1000, 6)
+colnames(bloms3) <- c("K_g", "K_s", "K_p", "P_g", "P_s", "P_p")
+for (i in 1:3){
+  for (j in 1:1000){
+    tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
+    tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
+    output <- phylosignal(traits[, 6 + i], tree1000[[j]])
+    bloms3[j, i] <- output[[1]]
+    bloms3[j, 3+i] <- output[[4]]
+  }}
+
+avgK1 <- colMeans(bloms3)[1:3]
+avgP <- colMeans(bloms3)[4:6]
+length(which(bloms3[, 4] > 0.05)) / 1000
+length(which(bloms3[, 5] > 0.05)) / 1000
+length(which(bloms3[, 5] > 0.05)) / 1000
+
+
+phylosignal(traits[, 6 + i], tree)
+
+
+# Varaince Partitioning
+BGE3 <- as.data.frame(BGE2)
+BGE3$ID <- row.names(BGE3)
+BGE3$Taxon <- c("Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo",
+                "Pseudo", "Pseudo", "Aero", "Aero", "Aero", "Aero", "Aero", "Xantho",
+                "Xanto", "Xanto", "Beta", "Beta", "Beta", "Alpha", "Alpha", "Alpha")
+BGE3$TaxonP <- c("Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma",
+                "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma",
+                "Gamma", "Gamma", "Beta", "Beta", "Beta", "Alpha", "Alpha", "Alpha")
+
+
+
+# Mixed Model
+BGE.l <- melt(BGE3)
+model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$Taxon) + as.factor(BGE.l$variable))
+summary(model)
+
+1 - (0.29902/0.40510)
+1 - (0.35154/0.40510)
+
+Anova(model, type="III")
+
+
+# Mixed Model
+BGE.l <- melt(BGE3)
+model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$Taxon))
+summary(model)
+
+1 - (0.32573/0.40510)
+
+# Mixed Model
+BGE.l <- melt(BGE3)
+model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$TaxonP))
+summary(model)
+
+1 - (0.37824/0.40510)
+
+Anova(model, type="III")
+
+
+# Mixed Model
+BGE.l <- melt(BGE3)
+model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$variable))
+summary(model)
+1 - (0.3784/0.40510)
+
+
+
+
+
+# Variance Partitioning
+
+
+
+
+
+
+
+
+# Crap I haven't worked out
+
+
+
+# Generate Test Statistics for Comparing Phylogenetic Signal {geiger}
+fitContinuous(nj.rooted, nb, model = "lambda")
+fitContinuous(nj.lambda.0, nb, model = "lambda")
+
+
+
+# First, Correct for Zero Branch-Lengths on Our Tree
+nj.rooted$edge.length <- nj.rooted$edge.length + 10^-7
+
+# Calculate Phylogenetic Signal for Growth on All Phosphorus Resources
+# First, Create a Blank Output Matrix
+p.phylosignal <- matrix(NA, 6, 18)
+colnames(p.phylosignal) <- colnames(p.growth.std)
+rownames(p.phylosignal) <- c("K", "PIC.var.obs", "PIC.var.mean",
+                             "PIC.var.P", "PIC.var.z", "PIC.P.BH")
+
+# Use a For Loop to Calculate Blomberg's K for Each Resource
+for (i in 1:18){
+  x <- as.matrix(p.growth.std[ ,i, drop = FALSE])
+  out <- phylosignal(x, nj.rooted)
+  p.phylosignal[1:5, i] <- round(t(out), 3)
+}
+
+# Use the BH Correction on P-values:
+p.phylosignal[6, ] <- round(p.adjust(p.phylosignal[4, ], method = "BH"), 3)
+
+
+# Calcualate Phylogenetic Signal for Niche Breadth
+signal.nb <- phylosignal(nb, nj.rooted)
+
+
+
+```
+
+# BGE as a function of niche breadth
+```{r}
+# Import Data
+ecoplate <- read.delim("../data/EcoPlate/eco.data.txt")
+pathways <- read.delim("../data/Maple/pathways.txt")
+
+levins <- function(p_xi = ""){
+  p = 0
+  for (i in p_xi){
+    p = p + i^2
+    }
+  nb = 1 / (length(p_xi) * p)
+  return(nb)
+}
+
+ecoplate.std <- ecoplate[,2:32] / (apply(ecoplate[,2:32], 1, sum))
+
+ecoplate$levins <- levins(ecoplate.std)
+
+ecoplate2 <- ecoplate[ecoplate$Strain %in% BGE$Organism, ]
+pathways2 <- pathways[pathways$Organism %in% BGE$Organism, ]
+
+niche <- merge(pathways2, ecoplate2[,c(1,33,34)], by.x = "Organism", by.y = "Strain", all.x = T)
+
+plot(levins ~ Pathways, niche)
+
+niche.bge <- merge(BGE, niche)
+
+plot(BGE_Glu ~ levins, niche.bge)
+plot(log1p(BGE_Glu) ~ Pathways, niche.bge)
+plot(BGE_Glu ~ NumRes, niche.bge)
+plot(BGE_Suc ~ Pathways, niche.bge)
+plot(BGE_Suc ~ levins, niche.bge)
+plot(BGE_Pro ~ Pathways, niche.bge)
+plot(BGE_Pro ~ levins, niche.bge)
+
+
+```
+
+
+
+
+
+# BGE as a function of umax
+```{r}
+umax <- read.delim("../data/umax.txt", header=T)
+copies <- read.delim("../data/CopyNumber/16SrRNA.txt")
+
+growth <- merge(umax, copies, by.x = "isolate", by.y = "Organism")
+
+growth.bge <- merge(BGE, growth, by.x = "Organism", by.y = "isolate")
+
+plot(BGE_Glu ~ umax, growth.bge, xlim = c(0, 0.2))
+
+
+```
+
+
+# Figure 3: Species Traits
+```{r, results='hide'}
+png(filename="../figures/Figure3.png",
+    width = 1600, height = 1600, res = 96*2, bg = "white")
+par(opar)
+
+layout(matrix(1:4, nrow = 2))
+
+par(mar = c(1,1,1,1) + 0.5, oma = c(3, 3, 2, 1))
+
+plot(BGE_Glu ~ levins, niche.bge, axes = "n",
+     xlim = c(0, 0.5), ylim = c(0, 0.35), las = 1,
+     pch = 22, bg = "gray", lwd = 2, cex = 1.5)
+axis(1, lwd = 2, labels = T, at = c(seq(0, 0.5, 0.1)), las = 1)
+axis(2, lwd = 2, labels = T, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.5, 0.1)), las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(0, 0.5, 0.1)), las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.5, 0.1)), las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+box(lwd = 2)
+
+
+plot(BGE_Glu ~ Pathways, niche.bge, axes = "n",
+     xlim = c(35, 75), ylim = c(0,0.35), las = 1,
+     pch = 22, bg = "gray", lwd = 2, cex = 1.5)
+axis(1, lwd = 2, labels = T, at = c(seq(40, 70, 10)), las = 1)
+axis(2, lwd = 2, labels = T, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(40, 70, 10)), las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(40, 70, 10)), las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(40, 70, 10)), las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+box(lwd = 2)
+
+plot(BGE_Glu ~ umax, growth.bge, axes = "n",
+     xlim = c(0, 0.6), ylim = c(0,0.35), las = 1,
+     pch = 22, bg = "gray", lwd = 2, cex = 1.5)
+axis(1, lwd = 2, labels = T, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(2, lwd = 2, labels = T, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+box(lwd = 2)
+
+
+
+plot(BGE_Glu ~ CopyNumber, growth.bge, 
+     xlim = c(1, 11), ylim = c(0, 0.35),
+     pch = 22, bg = "gray", lwd = 2, cex = 1.5)
+
+
+dev.off() # this writes plot to folder
+graphics.off() # shuts down open devices
+```
+
+```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Traits"}
+img <- readPNG("../figures/Figure3.png")
+grid.raster(img)
+```
+
+
+
+# BGE as a function of molecular properties (complexity)
+
+
+
 
