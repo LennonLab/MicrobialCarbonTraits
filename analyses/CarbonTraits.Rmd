@@ -113,7 +113,7 @@ table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
               col=mypalette(25), pch = 15, cex.symbol = 2.5,
               ratio.tree = 0.7, cex.legend = 1.25, center = FALSE,
               show.tip.label = FALSE)
-mtext(BGE$Organism, side =4, las = 1, at = c(1:23), cex = 0.8)
+mtext(tipLabels(x), side =4, las = 1, at = c(1:23), cex = 0.8)
 text(18.5, 22.5, expression(alpha), cex=1.5)
 text(18.5, 19.5, expression(beta), cex=1.5)
 text(4, 13, expression(gamma), cex=1.5)
