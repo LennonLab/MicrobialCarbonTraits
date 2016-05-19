@@ -1,23 +1,22 @@
 ################################################################################
 #                                                                              #
-#  HMWF Isolates Growth Rate                                    #
+#  HMWF Isolates Growth Rate                                                   #
 #   Parameter Estimate Code                                                    #
 #                                                                              #
 ################################################################################
 #                                                                              #
 #	Written by: M. Muscarella                                                    #
-#   Based on growthcurve_code.R Written by: M. Larsen (2013/07/18)             #
 #                                                                              #
-#	Last update: 2/19/14                                                         #
+#	Last update: 18 May 2016                                                     #
 #                                                                              #
 ################################################################################
 
-# Load Dependencies
-require("vegan")
 
+rm(list=ls())
+setwd("~/GitHub/MicrobialCarbonTraits/analyses")
+se <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 
-
-g.conv <- read.delim("../data/ABS-Cells.txt")
+#g.conv <- read.delim("../data/ABS-Cells.txt", header = T)
 
 ratesA <- read.csv("../output/HMWF130522.txt")
 ratesA$Isolate <- c("HMWF007", "HMWF018", "HMWF001",            "HMWF006", "HMWF013", "HMWF005", "HMWF017",
@@ -55,6 +54,17 @@ umaxB <- round(tapply(ratesB$umax, ratesB$Isolate, mean), 3)
 
 ratesC <- subset(ratesC, ratesC$Isolate != "Control")
 umaxC <- round(tapply(ratesC$umax, ratesC$Isolate, mean), 3)
+
+umax <- c(umaxA, umaxB, umaxC)
+umax[umax < 0] <-  NA
+umax[umax > 0.4] <-  NA
+umax <- as.matrix(umax)
+umax <- cbind(rownames(umax), umax)
+colnames(umax) <- c("isolate", "umax")
+
+write.csv(umax, "../data/GrowthCurves/umax.txt", quote = F, row.names = F)
+
+
 
 
 umax <- read.delim("../data/umax.txt", header=T)

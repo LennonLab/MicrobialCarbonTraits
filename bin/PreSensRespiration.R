@@ -28,7 +28,8 @@
 ################################################################################
 
 PreSens.Respiration2 <- function(infile = " ", outfile = " ", start = "",
-                                 end = "", name.in = "", in.format = "Rows"){
+                                 end = "", name.in = "", in.format = "Rows",
+                                 in.units = "mg", out.units = "uM"){
 
   # Global Options
   options(digits=6)
@@ -65,20 +66,42 @@ PreSens.Respiration2 <- function(infile = " ", outfile = " ", start = "",
     data.in[,i] <- as.numeric(data.in[, i])
   }
   data.in$Time <- round(data.in$Time/3600, 3) # Convert sec to Hrs
+  if (in.units == out.units){
+    # Do Nothing
+  }else{
+    if (in.units == "mg" & out.units == "uM"){
+      data.in[,3:26] <- data.in[,3:26] * 1000/32 # Convert mg O2/L to uM O2
+    } else {
+    if (in.units == "uM" & out.units == "mg"){
+      data.in[,3:26] <- data.in[,3:26] * 32/1000 # Convert uM O2/L to mg O2
+    }
+    }
+  }
+
+  # Define Output Unit
+  if (out.units == "mg"){
+    units <- "Rate (mg O2 Hr-1)"
+  } else {
+    if (out.units == "uM"){
+      units <- "Rate (µM O2 Hr-1)"
+    } else {
+      stop("You must choose units as either mg or uM")
+    }
+  }
 
   # Define Samples
   samples <- as.factor(colnames(data.in)[3:26])
 
-#   # Remove Empty Samples
-#   if (length(samples) != length(name.in)){
-#     stop("Your input and names do not match")
-#   } else {
-#     samples <- samples[which(name.in != "Empty")]
-#   }
+  # Remove Empty Samples
+  if (length(samples) != length(name.in)){
+    stop("Your input and names do not match")
+  } else {
+    # Do Nothing
+  }
 
   # Creat Output
   output <- as.data.frame(matrix(NA, length(samples), 6))
-  colnames(output) <- c("Sample", "Start", "End", "Rate (µM O2 Hr-1)", "R2", "P-value")
+  colnames(output) <- c("Sample", "Start", "End", units, "R2", "P-value")
 
   for (j in 1:length(samples)){
     if (name.in[j] == "Empty") {
@@ -109,4 +132,3 @@ PreSens.Respiration2 <- function(infile = " ", outfile = " ", start = "",
   output <- na.omit(output)
   write.table(as.matrix(output), file=outfile, row.names=F, col.names=T, sep=",", quote=FALSE)
 }
-

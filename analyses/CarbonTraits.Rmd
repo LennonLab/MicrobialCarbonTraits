@@ -26,6 +26,7 @@ opar <- par(no.readonly = TRUE)  # Saves plot defaults
 require("ape");require("phylobase");require("adephylo")
 require("geiger");require("picante")
 require("stats");require("RColorBrewer")
+require("png"); require("grid");require("reshape"); require("car")
 ```
 
 # Isolate Information
@@ -143,32 +144,32 @@ tree1000[[1]] <- drop.tip(tree1000[[1]], "Aquifex")
 traits <- as.matrix(traits[match(tree1000[[1]]$tip.label, row.names(traits)), ])
 
 # Blomberg's K - BGE
-bloms3 <- matrix(NA, 1000, 6)
-colnames(bloms3) <- c("K_g", "K_s", "K_p", "P_g", "P_s", "P_p")
-for (i in 1:3){
-  for (j in 1:1000){
-    tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
-    tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
-    output <- phylosignal(traits[, 6 + i], tree1000[[j]])
-    bloms3[j, i] <- output[[1]]
-    bloms3[j, 3+i] <- output[[4]]
-  }}
-
-avgK1 <- colMeans(bloms3)[1:3]
-avgP <- colMeans(bloms3)[4:6]
-length(which(bloms3[, 4] > 0.05)) / 1000
-length(which(bloms3[, 5] > 0.05)) / 1000
-length(which(bloms3[, 5] > 0.05)) / 1000
-
-
-phylosignal(traits[, 6 + i], tree)
-
+# bloms3 <- matrix(NA, 1000, 6)
+# colnames(bloms3) <- c("K_g", "K_s", "K_p", "P_g", "P_s", "P_p")
+# for (i in 1:3){
+#   for (j in 1:1000){
+#     tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
+#     tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
+#     output <- phylosignal(traits[, 6 + i], tree1000[[j]])
+#     bloms3[j, i] <- output[[1]]
+#     bloms3[j, 3+i] <- output[[4]]
+#   }}
+# 
+# avgK1 <- colMeans(bloms3)[1:3]
+# avgP <- colMeans(bloms3)[4:6]
+# length(which(bloms3[, 4] > 0.05)) / 1000
+# length(which(bloms3[, 5] > 0.05)) / 1000
+# length(which(bloms3[, 5] > 0.05)) / 1000
+# 
+# 
+# phylosignal(traits[, 6 + i], tree)
+# 
 
 # Varaince Partitioning
 BGE3 <- as.data.frame(BGE2)
 BGE3$ID <- row.names(BGE3)
 BGE3$Taxon <- c("Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo",
-                "Pseudo", "Pseudo", "Aero", "Aero", "Aero", "Aero", "Aero", "Xantho",
+                "Pseudo", "Pseudo", "Aero", "Aero", "Aero", "Aero", "Aero", "Xanto",
                 "Xanto", "Xanto", "Beta", "Beta", "Beta", "Alpha", "Alpha", "Alpha")
 BGE3$TaxonP <- c("Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma",
                 "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma",
@@ -210,58 +211,47 @@ model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$variable))
 summary(model)
 1 - (0.3784/0.40510)
 
+Anova(model, type="III")
 
 
-
-
-# Variance Partitioning
-
-
-
-
-
-
-
-
-# Crap I haven't worked out
 
 
 
 # Generate Test Statistics for Comparing Phylogenetic Signal {geiger}
-fitContinuous(nj.rooted, nb, model = "lambda")
-fitContinuous(nj.lambda.0, nb, model = "lambda")
+#fitContinuous(nj.rooted, nb, model = "lambda")
+#fitContinuous(nj.lambda.0, nb, model = "lambda")
 
 
 
 # First, Correct for Zero Branch-Lengths on Our Tree
-nj.rooted$edge.length <- nj.rooted$edge.length + 10^-7
+#nj.rooted$edge.length <- nj.rooted$edge.length + 10^-7
 
 # Calculate Phylogenetic Signal for Growth on All Phosphorus Resources
 # First, Create a Blank Output Matrix
-p.phylosignal <- matrix(NA, 6, 18)
-colnames(p.phylosignal) <- colnames(p.growth.std)
-rownames(p.phylosignal) <- c("K", "PIC.var.obs", "PIC.var.mean",
-                             "PIC.var.P", "PIC.var.z", "PIC.P.BH")
+#p.phylosignal <- matrix(NA, 6, 18)
+#colnames(p.phylosignal) <- colnames(p.growth.std)
+#rownames(p.phylosignal) <- c("K", "PIC.var.obs", "PIC.var.mean",
+#                             "PIC.var.P", "PIC.var.z", "PIC.P.BH")
 
 # Use a For Loop to Calculate Blomberg's K for Each Resource
-for (i in 1:18){
-  x <- as.matrix(p.growth.std[ ,i, drop = FALSE])
-  out <- phylosignal(x, nj.rooted)
-  p.phylosignal[1:5, i] <- round(t(out), 3)
-}
+#for (i in 1:18){
+#  x <- as.matrix(p.growth.std[ ,i, drop = FALSE])
+#  out <- phylosignal(x, nj.rooted)
+#  p.phylosignal[1:5, i] <- round(t(out), 3)
+#}
 
 # Use the BH Correction on P-values:
-p.phylosignal[6, ] <- round(p.adjust(p.phylosignal[4, ], method = "BH"), 3)
+#p.phylosignal[6, ] <- round(p.adjust(p.phylosignal[4, ], method = "BH"), 3)
 
 
 # Calcualate Phylogenetic Signal for Niche Breadth
-signal.nb <- phylosignal(nb, nj.rooted)
+#signal.nb <- phylosignal(nb, nj.rooted)
 
 
 
 ```
 
-# BGE as a function of niche breadth
+# BGE under the Generalist-Specialist Framework
 ```{r}
 # Import Data
 ecoplate <- read.delim("../data/EcoPlate/eco.data.txt")
@@ -283,37 +273,25 @@ ecoplate$levins <- levins(ecoplate.std)
 ecoplate2 <- ecoplate[ecoplate$Strain %in% BGE$Organism, ]
 pathways2 <- pathways[pathways$Organism %in% BGE$Organism, ]
 
-niche <- merge(pathways2, ecoplate2[,c(1,33,34)], by.x = "Organism", by.y = "Strain", all.x = T)
-
-plot(levins ~ Pathways, niche)
+niche <- merge(pathways2, ecoplate2[,c(1,33,34)], 
+               by.x = "Organism", by.y = "Strain", all.x = T)
 
 niche.bge <- merge(BGE, niche)
-
-plot(BGE_Glu ~ levins, niche.bge)
-plot(log1p(BGE_Glu) ~ Pathways, niche.bge)
-plot(BGE_Glu ~ NumRes, niche.bge)
-plot(BGE_Suc ~ Pathways, niche.bge)
-plot(BGE_Suc ~ levins, niche.bge)
-plot(BGE_Pro ~ Pathways, niche.bge)
-plot(BGE_Pro ~ levins, niche.bge)
-
-
 ```
 
 
 
 
 
-# BGE as a function of umax
+# BGE under the Copiotroph-Oligotroph Framework
 ```{r}
-umax <- read.delim("../data/umax.txt", header=T)
+umax <- read.csv("../data/GrowthCurves/umax.txt", header=T)
 copies <- read.delim("../data/CopyNumber/16SrRNA.txt")
 
 growth <- merge(umax, copies, by.x = "isolate", by.y = "Organism")
 
 growth.bge <- merge(BGE, growth, by.x = "Organism", by.y = "isolate")
 
-plot(BGE_Glu ~ umax, growth.bge, xlim = c(0, 0.2))
 
 
 ```
@@ -322,14 +300,14 @@ plot(BGE_Glu ~ umax, growth.bge, xlim = c(0, 0.2))
 # Figure 3: Species Traits
 ```{r, results='hide'}
 png(filename="../figures/Figure3.png",
-    width = 1600, height = 1600, res = 96*2, bg = "white")
+    width = 1200, height = 1200, res = 96*2, bg = "white")
 par(opar)
 
 layout(matrix(1:4, nrow = 2))
 
-par(mar = c(1,1,1,1) + 0.5, oma = c(3, 3, 2, 1))
+par(mar = c(2,1,1,1) + 0.5, oma = c(1, 3, 2, 1))
 
-plot(BGE_Glu ~ levins, niche.bge, axes = "n",
+plot(BGE_Glu ~ levins, niche.bge, axes = "n", 
      xlim = c(0, 0.5), ylim = c(0, 0.35), las = 1,
      pch = 22, bg = "gray", lwd = 2, cex = 1.5)
 axis(1, lwd = 2, labels = T, at = c(seq(0, 0.5, 0.1)), las = 1)
@@ -340,10 +318,12 @@ axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(0, 0.5, 0.1)), las = 1)
 axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
 axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.5, 0.1)), las = 1)
 axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+mtext("Levins", side = 1, line = 2)
+mtext("Generalist-Specialist", side = 3, line = 1)
 box(lwd = 2)
 
 
-plot(BGE_Glu ~ Pathways, niche.bge, axes = "n",
+plot(BGE_Glu ~ Pathways, niche.bge, axes = "n", 
      xlim = c(35, 75), ylim = c(0,0.35), las = 1,
      pch = 22, bg = "gray", lwd = 2, cex = 1.5)
 axis(1, lwd = 2, labels = T, at = c(seq(40, 70, 10)), las = 1)
@@ -354,40 +334,96 @@ axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(40, 70, 10)), las = 1)
 axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
 axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(40, 70, 10)), las = 1)
 axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+mtext("Pathways", side = 1, line = 2)
 box(lwd = 2)
 
-plot(BGE_Glu ~ umax, growth.bge, axes = "n",
-     xlim = c(0, 0.6), ylim = c(0,0.35), las = 1,
+plot(BGE_Glu ~ umax, growth.bge, axes = "n", 
+     xlim = c(0, 0.2), ylim = c(0,0.35), las = 1,
      pch = 22, bg = "gray", lwd = 2, cex = 1.5)
-axis(1, lwd = 2, labels = T, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(1, lwd = 2, labels = T, at = c(seq(0, 0.2, 0.05)), las = 1)
 axis(2, lwd = 2, labels = T, at = c(0, 0.1, 0.2, 0.3), las = 1)
-axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.2, 0.05)), las = 1)
 axis(2, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
-axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(0, 0.2, 0.05)), las = 1)
 axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
-axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.6, 0.2)), las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.2, 0.05)), las = 1)
 axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+mtext("Growth Rate", side = 1, line = 2)
+mtext("Oligotroph-Copiotroph", side = 3, line = 1)
 box(lwd = 2)
 
 
-
-plot(BGE_Glu ~ CopyNumber, growth.bge, 
+plot(BGE_Glu ~ CopyNumber, growth.bge, axes = "n",
      xlim = c(1, 11), ylim = c(0, 0.35),
      pch = 22, bg = "gray", lwd = 2, cex = 1.5)
+axis(1, lwd = 2, labels = T, at = c(seq(2, 10, 2)), las = 1)
+axis(2, lwd = 2, labels = T, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(2, 10, 2)), las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(2, 10, 2)), las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(2, 10, 2)), las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
+mtext("Copy Number", side = 1, line = 2)
+box(lwd = 2)
+
+mtext("Bacterial Growth Efficiency", side = 2, line = 1, outer = T, cex = 1.5)
 
 
 dev.off() # this writes plot to folder
 graphics.off() # shuts down open devices
-```
+#```
 
-```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Traits"}
+#```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Traits"}
 img <- readPNG("../figures/Figure3.png")
 grid.raster(img)
 ```
 
 
 
-# BGE as a function of molecular properties (complexity)
+# BGE as a Genomic Constraints
+```{r}
+maple <- read.delim("../data/Maple/maple.txt", header = T, row.names = 1)
+maple <- (maple > 80) * 1
+maple <- maple[BGE$Organism,which(colSums(maple) > 1)]
+
+maple2 <- maple[-c(which(is.na(BGE$BGE_Glu))),]
+maple2 <- maple2[,which(colSums(maple2) > 1)]
+
+# Calculate Bray-Curtis Distances for Genomes
+maple.bray <- vegdist(maple, "bray")
+
+# BGE dbRDA 
+BGE.dbRDA <- capscale(maple.bray ~ BGE$BGE_Glu, comm = maple, 
+                      add = T, na.action = na.exclude)
+str(BGE.dbRDA$CCA$wa)
+str(maple2)
+
+
+# DOM Scores
+pathway.scores <- data.frame(matrix(NA, 86, 2))
+colnames(pathway.scores) <- c("pathway", "cor")
+pathway.scores[,1] <- colnames(maple2)
+for (i in 1:86){
+  pathway.scores[i,2] <- cor(BGE.dbRDA$CCA$wa,maple2[,i], method = "spearman")
+}
+
+sig.path <- pathway.scores[which(abs(pathway.scores$cor) > 0.70), ]
+
+plot(BGE.dbRDA$CCA$wa, na.omit(BGE$BGE_Glu))
+
+# M00169	Pathway	CAM (Crassulacean acid metabolism), light
+# M00045	Pathway	Histidine degradation, histidine => N-formiminoglutamate => glutamate
+# M00124	Pathway	Pyridoxal biosynthesis, erythrose-4P => pyridoxal-5P
+# M00133	Pathway	Polyamine biosynthesis, arginine => agmatine => putrescine => spermidine
+
+sum(maple2[,"M00169"] > 0)
+plot(maple2[,"M00169"],na.omit(BGE$BGE_Glu))
+
+sum(na.omit(BGE$BGE_Glu) < 0.01)
+
+```
+
 
 
 
