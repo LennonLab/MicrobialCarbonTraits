@@ -55,7 +55,7 @@ for (i in strains){
   data <- get(i)
   avg.water <- mean(c(data[1,1], data[1,5], data[1,9]))
   sd.water <- sd(c(data[1,1], data[1,5], data[1,9]))
-  data.corr <- round(data - (avg.water + 1.96 * sd.water), 3)
+  data.corr <- round(data - (avg.water + 1.96 * sd.water), 2)
   data.corr[data.corr <= 0] <- 0
   for (j in resources){
     data.r <- which(eco.data$Strain  == i)
