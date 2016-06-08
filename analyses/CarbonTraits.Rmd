@@ -825,10 +825,12 @@ summary(mod1)
 ttest <- function(reg, coefnum, val){
   co <- coef(summary(reg))
   tstat <- (co[coefnum,1]-val)/co[coefnum,2]
-  2 * pt(abs(tstat), reg$df.residual, lower.tail = FALSE)
+  pstat <- 2 * pt(abs(tstat), reg$df.residual, lower.tail = FALSE)
+  return(list = c(tstat, reg$df.residual, pstat))
 }
 
 ttest(mod1, 2, 1)
+
 
 
 ```
