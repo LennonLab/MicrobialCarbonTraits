@@ -174,20 +174,20 @@ traits <- as.matrix(traits[match(tree1000[[1]]$tip.label, row.names(traits)), ])
 # Blomberg's K - BGE
 bloms3 <- matrix(NA, 1000, 6)
 colnames(bloms3) <- c("K_g", "K_s", "K_p", "P_g", "P_s", "P_p")
-for (i in 1:3){
-  for (j in 1:1000){
-    tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
-    tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
-    output <- phylosignal(traits[, 6 + i], tree1000[[j]])
-    bloms3[j, i] <- output[[1]]
-    bloms3[j, 3+i] <- output[[4]]
-  }}
-
-avgK1 <- colMeans(bloms3)[1:3]
-avgP <- colMeans(bloms3)[4:6]
-length(which(bloms3[, 4] > 0.05)) / 1000
-length(which(bloms3[, 5] > 0.05)) / 1000
-length(which(bloms3[, 5] > 0.05)) / 1000
+# for (i in 1:3){
+#   for (j in 1:1000){
+#     tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
+#     tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
+#     output <- phylosignal(traits[, 6 + i], tree1000[[j]])
+#     bloms3[j, i] <- output[[1]]
+#     bloms3[j, 3+i] <- output[[4]]
+#   }}
+# 
+# avgK1 <- colMeans(bloms3)[1:3]
+# avgP <- colMeans(bloms3)[4:6]
+# length(which(bloms3[, 4] > 0.05)) / 1000
+# length(which(bloms3[, 5] > 0.05)) / 1000
+# length(which(bloms3[, 5] > 0.05)) / 1000
 # 
 # 
 phylosignal(traits[, 7], tree)
@@ -819,7 +819,12 @@ PhysPro$Res <- rep("Pro", dim(PhysPro)[1])
 Phys.l <- rbind(PhysGlu, PhysSuc, PhysPro)
 Phys.l2 <- na.omit(Phys.l)
 
-mod1 <- lm(Prod ~ (Resp + Res + Group)^2, data = Phys.l2)
+Phys.l.b <- Phys.l2
+Phys.l.b$Resp <- 10*exp(Phys.l.b$Resp)
+Phys.l.b$Prod <- 10*exp(Phys.l.b$Prod)
+Phys.l.b$BGE <- 10*exp(Phys.l.b$BGE)
+
+mod1 <- lm(Resp ~ (Prod + Res + Group)^2, data = Phys.l2)
 summary(mod1)
 
 ttest <- function(reg, coefnum, val){
@@ -843,18 +848,22 @@ par(opar)
 
 
 par(mar = c(6,6,1,1) + 0.5)
-groupA1 <- lm(Prod ~ Resp, 
+groupA1 <- lm(Resp ~ Prod, 
               data = Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Glu", ])
-groupB1 <- lm(Prod ~ Resp, 
+groupB1 <- lm(Resp ~ Prod, 
               data = Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Glu", ])
-groupA <- lm(Prod ~ Resp, data = Phys.l2[Phys.l2$Group == "A", ])
-groupB <- lm(Prod ~ Resp, data = Phys.l2[Phys.l2$Group == "B", ])
-pred.frameA <- data.frame(Resp = seq(0.5, 3.2, by = 0.1))
-pred.frameB <- data.frame(Resp = seq(0.3, 2.7, by = 0.1))
+groupA <- lm(Resp ~ Prod, data = Phys.l2[Phys.l2$Group == "A", ])
+groupB <- lm(Resp ~ Prod, data = Phys.l2[Phys.l2$Group == "B", ])
+groupA.b <- lm(Resp ~ Prod, data = Phys.l.b[Phys.l.b$Group == "A", ])
+groupB.b <- lm(Resp ~ Prod, data = Phys.l.b[Phys.l.b$Group == "B", ])
+pred.frameA <- data.frame(Prod = seq(-3.2, 1.5, by = 0.1))
+pred.frameB <- data.frame(Prod = seq(-0.5, 2, by = 0.1))
+pred.frameC <- data.frame(Prod = seq(-3, -0.5, by = 0.1))
+pred.frameD <- data.frame(Prod = seq(-7, -3.2, by = 0.1))
 
-plot(Prod ~ Resp, Phys.l2, axes = F, type = "n",
+plot(Resp ~ Prod, Phys.l2, axes = F, type = "n",
      xlab = "", ylab = "",
-     xlim = c(0.3, 3.2), ylim = c(-3,2.2), las = 1,
+     xlim = c(-4, 2.2), ylim = c(-1,3.4), las = 1,
      pch = 22, bg = "gray", lwd = 2, cex = 1.5)
 add.hull(groupA1, pred.frameA)
 matlines(pred.frameA, predict(groupA1, interval = "c", newdata=pred.frameA),
@@ -863,42 +872,53 @@ add.hull(groupB1, pred.frameB)
 matlines(pred.frameB, predict(groupB1, interval = "c", newdata=pred.frameB),
          lty=c(2,3,3), lwd=c(4,2,2), col="black")  
 
-points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Glu", ],
+matlines(pred.frameC, predict(groupB1, interval = "c", newdata=pred.frameC),
+         lty=c(2,0,0), lwd=c(2,0,0), col="black")
+matlines(pred.frameD, predict(groupA1, interval = "c", newdata=pred.frameD),
+         lty=c(2,0,0), lwd=c(2,0,0), col="black")
+
+points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Glu", ],
        pch = 22, bg = "gray80", lwd = 2, 
        cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Glu"] * 5) 
-points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Glu", ],
+points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Glu", ],
        pch = 24, bg = "gray80", lwd = 2, 
        cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Glu"] * 5) 
 
-points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Suc", ],
+points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Suc", ],
        pch = 22, bg = "gray60", lwd = 2, 
        cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Suc"] * 5) 
-points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Suc", ],
+points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Suc", ],
        pch = 24, bg = "gray60", lwd = 2, 
        cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Suc"] * 5) 
 
-points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Pro", ],
+points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Pro", ],
        pch = 22, bg = "gray40", lwd = 2, 
        cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Pro"] * 5) 
-points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Pro", ],
+points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Pro", ],
        pch = 24, bg = "gray40", lwd = 2, 
        cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Pro"] * 5) 
 
+abline(v = 0)
+abline(h = 1)
+abline(h = 0)
 
-axis(1, lwd = 2, labels = c(2, 10, 100, 1000), at = c(0.3, seq(1, 3, 1)), las = 1)
-axis(2, lwd = 2, labels = c(0.001, 0.01, 0.1, 1, 10, 100), at = c(seq(-3, 2, 1)), las = 1)
-axis(1, lwd = 2, labels = F, tck = 0.02, at = c(0.3, seq(1, 3, 1)), las = 1)
-axis(2, lwd = 2, labels = F, tck = 0.02, at = c(seq(-3, 2, 1)), las = 1)
-axis(3, lwd = 2, labels = F, tck = -0.02, at = c(0.3, seq(1, 3, 1)), las = 1)
-axis(4, lwd = 2, labels = F, tck = -0.02, at = c(seq(-3, 2, 1)), las = 1)
-axis(3, lwd = 2, labels = F, tck = 0.02, at = c(0.3, seq(1, 3, 1)), las = 1)
-axis(4, lwd = 2, labels = F, tck = 0.02, at = c(seq(-3, 2, 1)), las = 1)
-mtext("Respiration Rate", side = 1, line = 2.5, cex = 1.5)
-mtext(expression(paste("(pmole C cell"^-1, "hr"^-1, ")")), 
-                       side = 1, line = 4, cex = 1)
-mtext("Production Rate", side = 2, line = 4.5, cex = 1.5)
+text(-3.8, 0.52, paste("*", round(groupA1$coefficients[1], 2), sep = ""), cex = 1.2)
+text(-2, -1, paste("*", round(groupB1$coefficients[1], 2), sep = ""), , cex = 1.2) 
+
+axis(1, lwd = 2, labels = c(0.001, 0.1, 100), at = c(seq(-3, 2, 2)), las = 1)
+axis(2, lwd = 2, labels = c(0.01, 0.1, 1, 10, 100, 1000), at = c(seq(-2, 3, 1)), las = 1)
+axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(-3, 3, 2)), las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, at = c(seq(-2, 3, 1)), las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(-3, 3, 2)), las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, at = c(seq(-2, 3, 1)), las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(-3, 3, 2)), las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, at = c(seq(-2, 3, 1)), las = 1)
+mtext("Respiration Rate", side = 2, line = 4.5, cex = 1.5)
 mtext(expression(paste("(pmole C cell"^-1, "hr"^-1, ")")), 
                        side = 2, line = 3, cex = 1)
+mtext("Production Rate", side = 1, line = 2.5, cex = 1.5)
+mtext(expression(paste("(pmole C cell"^-1, "hr"^-1, ")")), 
+                       side = 1, line = 4, cex = 1)
 box(lwd = 2)
 
 # Add Legend
