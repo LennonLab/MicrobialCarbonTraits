@@ -1,7 +1,7 @@
 ################################################################################
 #                                                                              #
 #	Microbial Carbon Traits: EcoPlate                                    #
-#   This script produces EcoPlate and MAPLE Graphs                             #
+#   This script produces EcoPlate data file from raw data                             #
 #                                                                              #
 ################################################################################
 #                                                                              #
@@ -13,7 +13,7 @@
 
 # Setup Work Environment
 rm(list=ls())
-setwd("~/GitHub/MicrobialCarbonTraits")
+setwd("~/GitHub/MicrobialCarbonTraits/")
 sem <- function(x){sd(na.omit(x))/sqrt(length(na.omit(x)))}
 
 source("./bin/EcoPlate.R")
@@ -65,7 +65,7 @@ for (i in strains){
   }
 }
 
-write.table(eco.data, "./data/EcoPlate/eco.data.txt", quote=FALSE,
+write.table(eco.data, "./data/eco.data.txt", quote=FALSE,
             row.names=FALSE, sep="\t")
 
 

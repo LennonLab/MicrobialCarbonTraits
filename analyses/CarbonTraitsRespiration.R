@@ -13,7 +13,7 @@
 
 # Setup Work Environment
 rm(list=ls())
-setwd("~/GitHub/MicrobialCarbonTraits")
+setwd("~/GitHub/MicrobialCarbonTraits/")
 sem <- function(x){sd(na.omit(x))/sqrt(length(na.omit(x)))}
 require(reshape)
 
@@ -154,6 +154,11 @@ BR.data$Glu_se <- round(apply(BR.data[, 14:16], 1, sem), 3)
 BR.data$Suc_se <- round(apply(BR.data[, 17:19], 1, sem), 3)
 BR.data$Pro_se <- round(apply(BR.data[, 20:22], 1, sem), 3)
 
+BR.data$Glu_mean[BR.data$Glu_mean == 0] <- NA
+BR.data$Suc_mean[BR.data$Suc_mean == 0] <- NA
+BR.data$Pro_mean[BR.data$Pro_mean == 0] <- NA
+BR.data$Pro_se[BR.data$Pro_se == 0] <- NA
+
 # Export Data
-write.csv(BR.data[, c(1, 14:28)], file="./data/CarbonTraits/BR_data.txt",
+write.csv(BR.data[, c(1, 14:28)], file="./data/BR_data.txt",
           quote=FALSE, row.names=FALSE)

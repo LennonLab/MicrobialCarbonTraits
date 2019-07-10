@@ -1,0 +1,84 @@
+Mac version
+
+Using ReadLine,Boost,HDF5
+mothur v.1.41.2
+Last updated: 1/23/19
+by
+Patrick D. Schloss
+
+Department of Microbiology & Immunology
+
+University of Michigan
+http://www.mothur.org
+
+When using, please cite:
+Schloss, P.D., et al., Introducing mothur: Open-source, platform-independent, community-supported software for describing and comparing microbial communities. Appl Environ Microbiol, 2009. 75(23):7537-41.
+
+Distributed under the GNU General Public License
+
+Type 'help()' for information on the commands that are available
+
+For questions and analysis support, please visit our forum at https://www.mothur.org/forum
+
+Type 'quit()' to exit program
+
+Interactive Mode
+
+
+
+mothur > filter.seqs(fasta=HWMF_16S.Sina.fasta, vertical=T, trump=.)
+Unable to open HWMF_16S.Sina.fasta. Trying default /usr/local/bin/HWMF_16S.Sina.fasta.
+Unable to open /usr/local/bin/HWMF_16S.Sina.fasta. Trying mothur's executable location /usr/local/bin/HWMF_16S.Sina.fasta.
+Unable to open /usr/local/bin/HWMF_16S.Sina.fasta.
+no valid files.
+
+Using 4 processors.
+[ERROR]: did not complete filter.seqs.
+
+mothur > system(ls)
+HMWF_16S.Sina.fasta
+HMWF_16S.Sina_wn.fasta
+HMWF_16S.fasta
+HMWF_16S_long.fasta
+RAxML_bestTree.RAxML_HMWF
+RAxML_bipartitions.RAxML_HMWF
+RAxML_bipartitionsBranchLabels.RAxML_HMWF
+RAxML_info.RAxML_HMWF
+Raxml.txt
+arb-silva.de_2019-04-07_id632633.tree
+commandScreen.output
+mothur.1560010484.logfile
+
+
+mothur > filter.seqs(fasta=./HMWF_16S.Sina.fasta, vertical=T, trump=.)
+
+Using 4 processors.
+Creating Filter... 
+It took 0 secs to create filter for 31 sequences.
+
+
+Running Filter... 
+It took 0 secs to filter 31 sequences.
+
+
+
+Length of filtered alignment: 1376
+Number of columns removed: 48624
+Length of the original alignment: 50000
+Number of sequences used to construct filter: 31
+
+Output File Names: 
+/Users/mmuscarella/GitHub/MicrobialCarbonTraits/data/Phylogeny/HMWF_16S.filter
+/Users/mmuscarella/GitHub/MicrobialCarbonTraits/data/Phylogeny/HMWF_16S.Sina.filter.fasta
+
+
+mothur > quit()
+
+
+************************************************************
+************************************************************
+************************************************************
+Detected 1 [ERROR] messages, please review.
+************************************************************
+************************************************************
+************************************************************

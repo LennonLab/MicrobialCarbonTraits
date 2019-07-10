@@ -85,7 +85,7 @@ growth.modGomp <- function(input=" ", output.name=" ",
 
     # Smoothing Function
     if (smooth == T){
-    s.2 <- as.numeric(filter(s, rep(1/11,11), circular=F, sides=2))
+    s.2 <- as.numeric(stats::filter(s, rep(1/11,11), circular=F, sides=2))
     s.2[1:5] <- s[1:5]
     s.2[(length(s.2)-5):length(s.2)] <- s[(length(s)-5):length(s)]
     s.max <- max(which(s.2 == max(s.2, na.rm=T)))

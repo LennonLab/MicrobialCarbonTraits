@@ -92,8 +92,7 @@ for (i in 1:length(bp.names)){
 # BP Calculations
 for (i in 1:length(bp.names)){
   BP[[i]]$DPM <- BP[[i]]$CPM/0.64
-  BP[[i]]$DPMc <- BP[[i]]$DPM - 2000/0.64 # Fix later
-  BP[[i]]$Leucine <- ((BP[[i]]$DPMc / 2.2e12) / 153) / 1000
+  BP[[i]]$Leucine <- ((BP[[i]]$DPM / 2.2e12) / 153) / 1000
   # DPM*1Ci/2.2e12DPM *1mmolLeu/153Ci * 1molLeu/1000mmol
   BP[[i]]$Leucine.per <- (BP[[i]]$Leucine * (1/1) * (1/0.0015))
   # Leu incorporated * 1/time (hrs) * 1/vol (L)
@@ -169,5 +168,5 @@ BP.data$Suc_se <- round(apply(BP.data[, 17:19], 1, sem), 3)
 BP.data$Pro_se <- round(apply(BP.data[, 20:22], 1, sem), 3)
 
 # Export Data
-write.csv(BP.data[, c(1, 14:28)], file="./data/CarbonTraits/BP_data.txt",
+write.csv(BP.data[, c(1, 14:28)], file="./data/BP_data.txt",
           quote=FALSE, row.names=FALSE)

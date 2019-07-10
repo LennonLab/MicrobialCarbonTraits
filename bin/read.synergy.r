@@ -14,7 +14,7 @@
 ################################################################################
 
 read.synergy <- function(input = " ", skip = ""){
-  data.in <- read.delim(input, skip=skip, header=T, as.is=T)
+  data.in <- read.delim(input, skip=skip, header=T, as.is=T, sep="\t", check.names = F)
   results.start <- which(data.in == "Results")
   data.out <- data.in[1:(results.start - 2),]
   colnames(data.out)[2] <- "Temp"

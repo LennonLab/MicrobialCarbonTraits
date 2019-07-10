@@ -4,3 +4,6 @@
 
 ./data/temp/*
 ./data/output/*
+
+output/*
+temp/*

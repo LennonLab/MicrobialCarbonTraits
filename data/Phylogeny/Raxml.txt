@@ -1,0 +1,32 @@
+I uploaded HMWF_16S_long.fasta to the Sina Aligner
+
+I aligned using the Bacterial variability profile
+
+The aligned seqs were saved as
+HWMF_16S.Sina.fasta
+
+I then used mothur to trim the alignment
+filter.seqs(fasta=./HMWF_16S.Sina.fasta, vertical=T, trump=.)
+
+Output: 
+HMWF_16S.Sina.filter.fasta
+
+raxmlHPC-PTHREADS -T 12 -f a -m GTRCAT -# autoMRE -p 12345 -x 12345 \
+-s HMWF_16S.Sina.filter.fasta -n RAxML_HMWF
+
+Output:
+RAxML_bipartitions.RAxML_HMWF 
+RAxML_info.RAxML_HMWF
+
+
+
+
+raxmlHPC-PTHREADS -T 12 -f d -m GTRGAMMA -# autoMRE -p 12345 -x 12345 \
+-o Aquifex,AE000657.1192069.1193655,AJ309733.1.1586,AE000657.571199.572785M83548.1.1564 \
+-s HMWF_16S.Sina.fasta -n TEST 
+
+
+raxmlHPC-PTHREADS -T 12 -f a -m GTRGAMMA -# autoMRE -p 12345 -x 12345 \
+-s HMWF_16S.Sina.fasta -n RAxML_HMWF
+
+
