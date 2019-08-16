@@ -28,10 +28,18 @@ dir.create("../data/GrowthCurves/output", showWarnings = FALSE)
 #growth.modGomp("../data/GrowthCurve_")
 
 # Experimental Data
-growth.modGomp("../data/GrowthCurves/GrowthCurve_14hrs_130528_194247.txt", "HMWF130528", skip=50)
-growth.modGomp("../data/GrowthCurves/GrowthCurve_18hrs_130520_160724.txt", "HMWF130520", skip=50)
-growth.modGomp("../data/GrowthCurves/GrowthCurve_18hrs_130522_155343.txt", "HMWF130522", skip=50)
-growth.modGomp("../data/GrowthCurves/GrowthCurve_18hrs_140402_170936.txt", "HMWF140402", skip=50)
+growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_14hrs_130528_194247.txt", 
+               output.name = "HMWF130528", 
+               output.dir = "../data/GrowthCurves/output/", skip=50)
+growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_18hrs_130520_160724.txt", 
+               output.name = "HMWF130520", 
+               output.dir = "../data/GrowthCurves/output/", skip=50)
+growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_18hrs_130522_155343.txt", 
+               output.name = "HMWF130522", 
+               output.dir = "../data/GrowthCurves/output/", skip=50)
+growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_18hrs_140402_170936.txt", 
+               output.name = "HMWF140402", 
+               output.dir = "../data/GrowthCurves/output/", skip=50)
 
 
 #g.conv <- read.delim("./data/ABS-Cells.txt", header = T)

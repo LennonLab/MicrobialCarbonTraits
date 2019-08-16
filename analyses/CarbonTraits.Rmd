@@ -10,6 +10,11 @@ output:
     fig_caption: true
 ---
 
+# Overview
+This manuscript explores
+
+Note: Fig 1 shows the three different Carbon substrates used in this manuscript.
+
 # Initial Setup
 ```{r results='hide', message=FALSE}
 rm(list=ls()) 
@@ -51,26 +56,9 @@ require("stats");require("RColorBrewer")
 require("png"); require("grid");require("reshape"); require("car")
 ```
 
-# Isolate Information
-## Figure 1: Phylogenetic Tree
-Do I want to make a really nice tree or just use the species tree in the next figure
-```{r, results = "hide"}
-# Import Phylogenetic Tree
-tree.raw <- read.tree("../data/Phylogeny/RAxML_bipartitions.RAxML_HMWF")
-tree.rooted <- ape::root(tree.raw, "Aquifex", resolve.root = T)
-
-tree.rooted$node.label
-
-plot.phylo(tree.rooted, type = "phylogram", 
-           direction = "right", show.tip.label=TRUE,
-           use.edge.length = FALSE, cex = 0.6, label.offset = 1, 
-           main = "Seq w/o Neighbors w/o Rooting")
-add.scale.bar(cex = 0.7)
-nodelabels(tree.rooted$node.label, font = 2, bg = "white", 
-           frame = "none", cex = 0.4, adj = c(1.2, 1.2), col = "red")
-```
 
 # Bacterial Growth Efficiency
+## Import Data
 ```{r}
 # Import Data
 BP <- read.csv(file="../data/BP_data.txt") # Produced by CarbonTraitsProduction.R
@@ -98,7 +86,7 @@ is.na(BGE[, 4]) <- 0
 write.csv(BGE, file="../data/BGE_data.txt", quote=FALSE, row.names=FALSE)
 ```
 
-# Import Tree
+## Import Tree
 ```{r}
 # Import Phylogeny (already rooted)
 tree.in <- read.tree("../data/Phylogeny/RAxML_bipartitions.RAxML_HMWF")
@@ -152,7 +140,7 @@ rownames(BGE2) <- BGE$Organism
 BGE2 <- as.matrix(BGE2[match(tree$tip.label, row.names(BGE2)), ])
 ```
 
-##Figure 2: Bacterial Growth Efficiency
+## Figure 2: BGE
 ```{r, results='hide'}
 png(filename="../figures/Figure2.png",
     width = 1200, height = 1200, res = 96*2, bg = "white")
@@ -342,44 +330,15 @@ Anova(model, type="III")
 
 ```
 
-# BGE Distribution
-```{r, results = "hide"}
-png(filename="../figures/Density.png",
-    width = 1200, height = 800, res = 96*2, bg = "white")
-par(opar)
-
-dip.test(na.omit(BGE2[,1]), simulate.p.value = T)
-
-par(mar = c(4, 4, 1, 1) + 0.5)
-plot(density(na.omit(BGE2[,1])), main = "",
-     ylab = "", cex.lab = 1.25, 
-     cex = 1.5, las = 1, lwd = 2, cex.axis = 1.25)
-axis(1, lwd = 2, labels = F, las = 1, cex = 1.25)
-axis(2, lwd = 2, labels = F, las = 1, cex = 1.25)
-axis(1, lwd = 2, labels = F, tck = 0.02, las = 1)
-axis(2, lwd = 2, labels = F, tck = 0.02, las = 1)
-axis(3, lwd = 2, labels = F, tck = -0.02, las = 1)
-axis(4, lwd = 2, labels = F, tck = -0.02, las = 1)
-axis(3, lwd = 2, labels = F, tck = 0.02, las = 1)
-axis(4, lwd = 2, labels = F, tck = 0.02, las = 1)
-mtext("Density", side = 2, line = 2.5, cex = 1.5)
-box(lwd = 2)
-
-
-dev.off() # this writes plot to folder
-graphics.off() # shuts down open devices
-#```
-
-#```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Kernel Density Plot"}
-img <- readPNG("../figures/Density.png")
-grid.raster(img)
-```
-
-
 # Phenotypic Comparisions
+Raw Data Last Updates
+- umax: 10 July 2019
+- copy number: No updates needed
+- ecoplate:
+- maple: 
 ```{r}
 # Import Data
-umax <- read.csv("../data/umax.txt", header=T)
+umax <- read.csv("../data/umax.txt", header=T) 
 copies <- read.delim("../data/16SrRNA.txt")
 ecoplate <- read.delim("../data/eco.data.txt") 
 maple.raw <- read.delim("../data/maple.txt", header = T, row.names = 1)
@@ -1118,3 +1077,54 @@ grid.raster(img)
 ```
 
 
+# Supplemental 
+## Supp Figure 1: Phylogenetic Tree
+Do I want to make a really nice tree or just use the species tree in the next figure
+```{r, results = "hide"}
+# Import Phylogenetic Tree
+tree.raw <- read.tree("../data/Phylogeny/RAxML_bipartitions.RAxML_HMWF")
+tree.rooted <- ape::root(tree.raw, "Aquifex", resolve.root = T)
+
+tree.rooted$node.label
+
+plot.phylo(tree.rooted, type = "phylogram", 
+           direction = "right", show.tip.label=TRUE,
+           use.edge.length = FALSE, cex = 0.6, label.offset = 1, 
+           main = "Seq w/o Neighbors w/o Rooting")
+add.scale.bar(cex = 0.7)
+nodelabels(tree.rooted$node.label, font = 2, bg = "white", 
+           frame = "none", cex = 0.4, adj = c(1.2, 1.2), col = "red")
+```
+
+## BGE Distribution
+```{r, results = "hide"}
+png(filename="../figures/Density.png",
+    width = 1200, height = 800, res = 96*2, bg = "white")
+par(opar)
+
+dip.test(na.omit(BGE2[,1]), simulate.p.value = T)
+
+par(mar = c(4, 4, 1, 1) + 0.5)
+plot(density(na.omit(BGE2[,1])), main = "",
+     ylab = "", cex.lab = 1.25, 
+     cex = 1.5, las = 1, lwd = 2, cex.axis = 1.25)
+axis(1, lwd = 2, labels = F, las = 1, cex = 1.25)
+axis(2, lwd = 2, labels = F, las = 1, cex = 1.25)
+axis(1, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, las = 1)
+mtext("Density", side = 2, line = 2.5, cex = 1.5)
+box(lwd = 2)
+
+
+dev.off() # this writes plot to folder
+graphics.off() # shuts down open devices
+#```
+
+#```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Kernel Density Plot"}
+img <- readPNG("../figures/Density.png")
+grid.raster(img)
+```
