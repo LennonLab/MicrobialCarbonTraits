@@ -11,7 +11,7 @@ output:
 ---
 
 # Overview
-This manuscript explores
+This manuscript explores bacterial growth efficiency (BGE) using a trait-based approach. We used 20 bacterial isolates and three different carbon substrates to test how consumer and resource identity interact to determine BGE
 
 Note: Fig 1 shows the three different Carbon substrates used in this manuscript.
 
@@ -49,11 +49,13 @@ levins <- function(p_xi = ""){
 opar <- par(no.readonly = TRUE)  # Saves plot defaults
 
 # Required Packages
-#require("muscle");require("seqinr");require("caper")
-require("ape");require("phylobase");require("adephylo")
-require("geiger");require("picante")
-require("stats");require("RColorBrewer")
-require("png"); require("grid");require("reshape"); require("car")
+library("ape");library("phylobase");library("adephylo")
+library("geiger");library("picante"); library("phytools")
+library("stats");library("RColorBrewer"); library("labdsv")
+library("png"); library("grid");library("reshape"); library("car")
+library("lme4");library("MuMIn"); library("diptest"); library("nlme")
+
+source("../bin/Phylo4D.R")
 ```
 
 
@@ -82,6 +84,8 @@ BGE[, 4][which(BGE[, 4] < 0)] <- 0
 BGE[, 4][which(BGE[, 4] == "NA")] <- 0
 is.na(BGE[, 4]) <- 0
 
+range(na.omit(c(BGE$BGE_Glu, BGE$BGE_Pro, BGE$BGE_Suc)))
+
 # Save BGE Data
 write.csv(BGE, file="../data/BGE_data.txt", quote=FALSE, row.names=FALSE)
 ```
@@ -89,21 +93,12 @@ write.csv(BGE, file="../data/BGE_data.txt", quote=FALSE, row.names=FALSE)
 ## Import Tree
 ```{r}
 # Import Phylogeny (already rooted)
-tree.in <- read.tree("../data/Phylogeny/RAxML_bipartitions.RAxML_HMWF")
-
-# Need to remove all of the extra seqs. and check bootstraps. 
-
-
-
-# Remove Neighbors
-Ctrait.samps <- c(as.character(BGE$Organism), "Aquifex")
-neighbors <- setdiff(tree.in$tip.label, Ctrait.samps)
-tree.samps <- drop.tip(tree.in, neighbors)
+tree <- read.tree("../data/Phylogeny/HMWF.proteo.nwk.tre")
 
 # Keep Rooted but Drop Outgroup Branch
-tree <- drop.tip(tree.samps, "Aquifex")
-
-#tree$edge.length <- tree$edge.length + 10^-7
+tree <- drop.tip(tree, "Aquifex")
+tree <- drop.tip(tree, c("HMWF015", "HMWF017", "HMWF032"))
+tree$edge.length <- tree$edge.length + 10^-7
 ```
 
 ```{r}
@@ -140,169 +135,152 @@ rownames(BGE2) <- BGE$Organism
 BGE2 <- as.matrix(BGE2[match(tree$tip.label, row.names(BGE2)), ])
 ```
 
-## Figure 2: BGE
+## Figure 1: BGE
 ```{r, results='hide'}
-png(filename="../figures/Figure2.png",
-    width = 1200, height = 1200, res = 96*2, bg = "white")
+#png(filename="../figures/Figure1.png",
+#    width = 1200, height = 1200, res = 96*2, bg = "white")
+setEPS()
+postscript("../figures/Figure_1.eps", width=6, height=6, bg = "white")
+
 par(opar)
 
 # Subset Tree
-tree <- keep.tip(tree.rooted, row.names(BGE2))
+tree <- keep.tip(tree, row.names(BGE2))
+tree$node.label <- c(1:tree$Nnode)
 
 # Define Color Palette
 mypalette <- colorRampPalette(brewer.pal(9, "YlOrRd"), bias = 2)
 
+# Define Group
+all.equal(tree$tip.label, row.names(BGE2))
+Group <- rep(NA, dim(BGE2)[1])
+for (i in 1:length(Group))
+  if (!is.na(BGE2[i, 1])){
+if (BGE2[i, 1] < 0.05){
+  Group[i] <- "L"
+} else {
+  Group[i] <- "H"
+}} else {}
+
 # Make Plot
-par(mar=c(1,1,1,7) + 0.1)
-x <- phylo4d(tree, tip.data = BGE2[], check.node.lables = "as.data")
-table.phylo4d(x, treetype = "phylo", symbol = "colors", show.node = FALSE,
-              cex.label = 0.8, scale = FALSE, use.edge.length = FALSE,
+par(mar=c(0.5,0.5,0.5,1.5) + 0.1)
+x <- phylo4d(tree, tip.data = BGE2[])
+
+table.phylo4d2(x, treetype = "phylo", symbol = "colors", 
+              show.node = FALSE, 
+              cex.label = 1, scale = FALSE, use.edge.length = FALSE,
               edge.color = "black", edge.width = 3, box = FALSE,
-              col=mypalette(25), pch = 15, cex.symbol = 2.5,
-              ratio.tree = 0.7, cex.legend = 1.25, center = FALSE,
-              show.tip.label = FALSE)
-mtext(tipLabels(x), side =4, las = 1, at = c(1:20), cex = 0.8)
+              col=mypalette(25), pch = 22, cex.symbol = 2.5,
+              ratio.tree = 0.7, cex.legend = 1.1, center = FALSE,
+              show.tip.label = TRUE,
+              tip.label = mapply(function(a,b)
+      as.expression(bquote(.(a)[.(b)])), tipLabels(x), Group))
+
+E <- phylobase::edges(x)
+tips.ord <- E[, 2][!E[, 2] %in% E[, 1]]
+#mtext(tipLabels(x), side = 4, las = 1, at = tips.ord, cex = 0.8)
+#mtext(mapply(function(a,b)
+#      as.expression(bquote(.(a)[.(b)])), tipLabels(x), Group), 
+#      side = 4, las = 1, at = tips.ord, cex = 0.8)
+
 text(15.5, 19.5, expression(alpha), cex=1.5)
 text(15.5, 16.5, expression(beta), cex=1.5)
 text(4.5, 10.5, expression(gamma), cex=1.5)
 text(11, 13.5, "Xan.", cex=1)
 text(11, 10.5, "Aero.", cex=1)
 text(11, 6, "Pseu.", cex=1)
-text(6, 2, "BGE", cex = 1.5)
-
+text(x = 4.7, y = 1.75, "BGE", cex = 1.5)
 
 dev.off() # this writes plot to folder
 graphics.off() # shuts down open devices
-# ```
+```
 
-# ```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="BGE"}
-img <- readPNG("../figures/Figure2.png")
+```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="BGE"}
+img <- readPNG("../figures/Figure_1.png")
 grid.raster(img)
 ```
 
-## Statistical Tests
+## Organize Tree and Data
 ```{r}
 # Hypothesis Testing
 traits <- cbind(Resp, Prod, BGE2)
 
 # Import Phylogeny (already rooted)
-tree1000 <- read.tree("../data/Phylogeny/RAxML_1000bootstrap.HMWF.tre")
+# tree1000 <- read.tree("../data/Phylogeny/RAxML_1000bootstrap.HMWF.tre")
+R.tree <- read.tree("../data/Phylogeny/RAxML_bipartitions.RAxML_HMWF")
+
+# Root Tree and Drop Extra Tipe
+tree.rooted <- ape::root.phylo(R.tree, outgroup = "Aquifex")
+tree.2 <- ape::drop.tip(tree.rooted, 
+                       tip = c(setdiff(tree.rooted$tip.label, 
+                       row.names(traits))))
 
 # Reorder Traits
-tree1000[[1]] <- drop.tip(tree1000[[1]], "Aquifex")
-traits <- as.matrix(traits[match(tree1000[[1]]$tip.label, row.names(traits)), ])
+traits <- as.matrix(traits[match(tree.2$tip.label, row.names(traits)), ])
+```
 
-# Blomberg's K - BGE
-bloms3 <- matrix(NA, 1000, 6)
-colnames(bloms3) <- c("K_g", "K_s", "K_p", "P_g", "P_s", "P_p")
-# for (i in 1:3){
-#   for (j in 1:1000){
-#     tree1000[[j]] <- drop.tip(tree1000[[j]], "Aquifex")
-#     tree1000[[j]]$edge.length <- tree1000[[j]]$edge.length + 10^-7
-#     output <- phylosignal(traits[, 6 + i], tree1000[[j]])
-#     bloms3[j, i] <- output[[1]]
-#     bloms3[j, 3+i] <- output[[4]]
-#   }}
-# 
-# avgK1 <- colMeans(bloms3)[1:3]
-# avgP <- colMeans(bloms3)[4:6]
-# length(which(bloms3[, 4] > 0.05)) / 1000
-# length(which(bloms3[, 5] > 0.05)) / 1000
-# length(which(bloms3[, 5] > 0.05)) / 1000
-# 
-# 
-phylosignal(traits[, 7], tree)
-phylosignal(traits[, 8], tree)
-phylosignal(traits[, 9], tree)
-Kcalc(traits[, 7], tree)
-Kcalc(traits[, 8], tree)
-Kcalc(traits[, 9], tree)
-# 
-
-# Varaince Partitioning
+## Taxonomic and Resource Variance Partitioning
+```{r}
 BGE3 <- as.data.frame(BGE2)
 BGE3$ID <- row.names(BGE3)
-BGE3$Taxon <- c("Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo",
-                "Pseudo", "Pseudo", "Aero", "Aero", "Aero", "Xanto",
-                "Xanto", "Xanto", "Beta", "Beta", "Beta", "Alpha", "Alpha", "Alpha")
-BGE3$TaxonP <- c("Gamma", "Gamma", "Gamma", "Gamma", 
-                "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", "Gamma",
-                "Gamma", "Gamma", "Beta", "Beta", "Beta", "Alpha", "Alpha", "Alpha")
+BGE3$Taxon <- c("Pseudo", "Pseudo", "Pseudo", "Pseudo", "Pseudo", 
+                "Pseudo", "Pseudo", "Pseudo", "Aero", "Aero", 
+                "Aero", "Xanto", "Xanto", "Xanto", "Beta", "Beta", 
+                "Beta", "Alpha", "Alpha", "Alpha")
+BGE3$TaxonP <- c("Gamma", "Gamma", "Gamma", "Gamma", "Gamma", 
+                 "Gamma", "Gamma", "Gamma", "Gamma", "Gamma", 
+                 "Gamma", "Gamma", "Gamma", "Gamma", "Beta", 
+                 "Beta", "Beta", "Alpha", "Alpha", "Alpha")
 
-# Full Mixed Model
-BGE.l <- melt(BGE3)
-model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$ID))
-summary(model)
-model <- glm(log1p(BGE.l$value) ~  as.factor(BGE.l$variable))
-summary(model)
-model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$ID) + as.factor(BGE.l$variable))
-Anova(model, type = "III")
-1 - (0.12178 / 0.40510)
-1 - (0.3784 / 0.40510)
-
-library(lme4)
-library(MuMIn)
+# Reorganize Data
 BGE.l <- melt(BGE3)
 
-fm1 <- lme(value ~ as.factor(variable), random=~1|ID, data = BGE.l)
-summary(fm1)
+# Model 1: Isolate Identity 
+fm1 <- lme(value ~ as.factor(ID), random=~1|variable, data = BGE.l)
+summary(fm1)$AIC
 r.squaredGLMM(fm1)
 
-
+# Model 2: Taxonomic Order
 fm2 <- lme(value ~ as.factor(Taxon), random=~1|variable, data = BGE.l)
-summary(fm2)
+summary(fm2)$AIC
 r.squaredGLMM(fm2)
 
-fm2 <- lme(value ~ as.factor(ID), random=~1|variable, data = BGE.l)
-summary(fm2)
-r.squaredGLMM(fm2)
+# Model 3: Resource Identity
+fm3 <- lme(value ~ as.factor(variable), random=~1|ID, data = BGE.l)
+summary(fm3)$AIC
+r.squaredGLMM(fm3)
+```
 
+## Phylogenetic Patterns
+```{r}
+# Blomberg's K - BGE
+## Glucose
+phylosignal(traits[, 7], tree.2)
+Kcalc(traits[, 7], tree.2)
 
-# Mixed Model
-BGE.l <- melt(BGE3)
-model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$Taxon) + as.factor(BGE.l$variable))
-summary(model)
+## Succinate
+phylosignal(traits[, 8], tree.2)
+Kcalc(traits[, 8], tree.2)
 
-1 - (0.29902/0.40510)
-1 - (0.35154/0.40510)
+## Protocatechuate
+phylosignal(traits[, 9], tree.2)
+Kcalc(traits[, 9], tree.2)
 
-Anova(model, type="III")
+# Pagel's Lambda - BGE
+## Glucose
+phylosig(tree.2, traits[, 7], method = "lambda", test = T)
 
+# Succinate
+phylosig(tree.2, traits[, 8], method = "lambda", test = T)
 
-# Mixed Model
-BGE.l <- melt(BGE3)
-model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$Taxon))
-summary(model)
-
-1 - (0.32573/0.40510)
-
-# Mixed Model
-BGE.l <- melt(BGE3)
-model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$TaxonP))
-summary(model)
-
-1 - (0.37824/0.40510)
-
-Anova(model, type="III")
-
-
-# Mixed Model
-BGE.l <- melt(BGE3)
-model <- glm(log1p(BGE.l$value) ~ as.factor(BGE.l$variable))
-summary(model)
-1 - (0.3784/0.40510)
-
-Anova(model, type="III")
-
-
+# Protocatechuate
+phylosig(tree.2, traits[, 9], method = "lambda", test = T)
 
 
 
 # Generate Test Statistics for Comparing Phylogenetic Signal {geiger}
 #fitContinuous(nj.rooted, nb, model = "lambda")
 #fitContinuous(nj.lambda.0, nb, model = "lambda")
-
-
 
 # First, Correct for Zero Branch-Lengths on Our Tree
 #nj.rooted$edge.length <- nj.rooted$edge.length + 10^-7
@@ -330,18 +308,88 @@ Anova(model, type="III")
 
 ```
 
+## BGE Distribution: Dip Test Glucose
+```{r, results = "hide"}
+png(filename="../figures/Density.png",
+    width = 1200, height = 800, res = 96*2, bg = "white")
+par(opar)
+
+dip.test(na.omit(BGE2[,1]), simulate.p.value = T)
+
+par(mar = c(4, 4, 1, 1) + 0.5)
+plot(density(na.omit(BGE2[,1])), main = "Dip Test: Glucose",
+     ylab = "", cex.lab = 1.25, 
+     cex = 1.5, las = 1, lwd = 2, cex.axis = 1.25)
+axis(1, lwd = 2, labels = F, las = 1, cex = 1.25)
+axis(2, lwd = 2, labels = F, las = 1, cex = 1.25)
+axis(1, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, las = 1)
+mtext("Density", side = 2, line = 2.5, cex = 1.5)
+box(lwd = 2)
+
+
+dev.off() # this writes plot to folder
+graphics.off() # shuts down open devices
+#```
+
+#```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Kernel Density Plot"}
+img <- readPNG("../figures/Density.png")
+grid.raster(img)
+```
+
+## BGE Distribution: Dip Test Succinate
+```{r, results = "hide"}
+png(filename="../figures/Density2.png",
+    width = 1200, height = 800, res = 96*2, bg = "white")
+par(opar)
+
+dip.test(na.omit(BGE2[,2]), simulate.p.value = T)
+
+par(mar = c(4, 4, 1, 1) + 0.5)
+plot(density(na.omit(BGE2[,2])), main = "Dip Test: Succinate",
+     ylab = "", cex.lab = 1.25, 
+     cex = 1.5, las = 1, lwd = 2, cex.axis = 1.25)
+axis(1, lwd = 2, labels = F, las = 1, cex = 1.25)
+axis(2, lwd = 2, labels = F, las = 1, cex = 1.25)
+axis(1, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(3, lwd = 2, labels = F, tck = -0.02, las = 1)
+axis(4, lwd = 2, labels = F, tck = -0.02, las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, las = 1)
+mtext("Density", side = 2, line = 2.5, cex = 1.5)
+box(lwd = 2)
+
+
+dev.off() # this writes plot to folder
+graphics.off() # shuts down open devices
+#```
+
+#```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Kernel Density Plot"}
+img <- readPNG("../figures/Density2.png")
+grid.raster(img)
+```
+
 # Phenotypic Comparisions
 Raw Data Last Updates
-- umax: 10 July 2019
+- umax: 8 Oct 2019 (check names and rerun, using old output for now)
 - copy number: No updates needed
-- ecoplate:
-- maple: 
+- ecoplate: 8 Oct 2019
+- maple: 8 Oct 2019
 ```{r}
 # Import Data
 umax <- read.csv("../data/umax.txt", header=T) 
 copies <- read.delim("../data/16SrRNA.txt")
 ecoplate <- read.delim("../data/eco.data.txt") 
-maple.raw <- read.delim("../data/maple.txt", header = T, row.names = 1)
+maple.raw <- read.delim("../data/Maple.MCR.txt", header = T, row.names = 1)
+genomes <- read.delim("../data/Genomes.txt", header = T)
+
+# Trim duplicates from umax
+umax <- umax[-c(grep("^#", umax$isolate)), ]
 
 BGE4 <- as.data.frame(BGE2[order(rownames(BGE2)), ])
 BGE4$Organism <- rownames(BGE4)
@@ -356,12 +404,14 @@ ecoplate$levins <- levins(ecoplate.std)
 
 ecoplate2 <- ecoplate[ecoplate$Strain %in% BGE4$Organism, ]
 pathways2 <- pathways[pathways$Organism %in% BGE4$Organism, ]
+genomes2 <- genomes[genomes$Strain %in% BGE4$Organism, ]
+pathways3 <- merge(pathways2, genomes2, by.x = "Organism", by.y = "Strain")
 
 # Build Dataframes
 growth <- merge(umax, copies, by.x = "isolate", by.y = "Organism")
 growth.bge <- merge(BGE4, growth, by.x = "Organism", by.y = "isolate")
 
-res.niche <- merge(pathways, ecoplate2[,c(1,33,34)], 
+res.niche <- merge(pathways3, ecoplate2[,c(1,33,34)], 
                by.x = "Organism", by.y = "Strain", all.x = T)
 niche.bge <- merge(BGE4, res.niche)
 
@@ -374,6 +424,9 @@ if (growth.bge$Glu[i] < 0.05){
 } else {
   growth.bge$group[i] <- "B"
 }} else {}
+
+aggregate(growth.bge$Glu, list(group = growth.bge$group), 
+          function(x) c(avg = mean(x), se = se(x)))
 
 niche.bge$group <- NA
 for (i in 1:dim(niche.bge)[1])
@@ -390,8 +443,11 @@ data <- growth.bge
 mod1 <- lm(Glu ~ umax * group, data = data)
 summary(mod1)
 
+# High BGE
 mod2 <- lm(Glu ~ umax, data = data[data$group == "B", ])
 summary(mod2)
+
+# Low BGE
 mod3 <- lm(Glu ~ umax, data = data[data$group == "A", ])
 summary(mod3)
 
@@ -400,22 +456,29 @@ data <- niche.bge
 mod1 <- lm(Glu ~ levins * group, data = data)
 summary(mod1)
 
+# High BGE
 mod2 <- lm(Glu ~ levins, data = data[data$group == "B", ])
 summary(mod2)
+
+# Low BGE
 mod3 <- lm(Glu ~ levins, data = data[data$group == "A", ])
 summary(mod3)
 
 ```
 
-# Figure 3: Species Traits
+## Figure 2: Species Traits
 ```{r, results='hide'}
-png(filename="../figures/Figure3.png",
-    width = 1600, height = 800, res = 96*2, bg = "white")
+#png(filename="../figures/Figure_2.png",
+#    width = 1600, height = 800, res = 96*2, bg = "white")
+setEPS()
+postscript("../figures/Figure_2.eps", width=9, height=4.5, bg = "white")
+
+
 par(opar)
 
 layout(matrix(1:2, nrow = 1))
 
-par(mar = c(3,0.5,1,0.5) + 0.5, oma = c(2, 5, 1, 1))
+par(mar = c(3,0.5,0.5,0.5) + 0.1, oma = c(2, 5, 1, 1))
 
 # Maximum Growth Rate
 groupA <- lm(Glu ~ umax, data = growth.bge[growth.bge$group == "A", ])
@@ -447,7 +510,7 @@ axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.2, 0.05)), las = 1)
 axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
 mtext(expression(paste("Maximum Growth Rate (hr"^-1,")")), side = 1, line = 3, cex = 1.5)
 #mtext("Oligotroph-Copiotroph", side = 3, line = 1)
-mtext("Bacterial Growth Efficiency", side = 2, line = 2.5, cex = 1.5)
+mtext("Bacterial Growth Efficiency", side = 2, line = 2.75, cex = 1.5)
 box(lwd = 2)
 
 # Add Legend
@@ -481,54 +544,82 @@ axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(0, 0.5, 0.1)), las = 1)
 axis(4, lwd = 2, labels = F, tck = -0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
 axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(0, 0.5, 0.1)), las = 1)
 axis(4, lwd = 2, labels = F, tck = 0.02, at = c(0, 0.1, 0.2, 0.3), las = 1)
-mtext("Levin's Index", side = 1, line = 3, cex = 1.5)
+mtext("Levins Index", side = 1, line = 3, cex = 1.5)
 #mtext("Generalist-Specialist", side = 3, line = 1)
 box(lwd = 2)
 
 dev.off() # this writes plot to folder
 graphics.off() # shuts down open devices
-#```
+```
 
-#```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Traits"}
-img <- readPNG("../figures/Figure3.png")
+```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Traits"}
+img <- readPNG("../figures/Figure_2.png")
 grid.raster(img)
 ```
 
 
 
 # Genomic Comparisions
+## Number of Pathways
 ```{r}
-# Number of Pathways
+# Number of Pathways (Group A = low BGE; Group B = high BGE)
 data <- niche.bge
-mod1 <- lm(Glu ~ pathways * group, data = data)
+mod.p <- lm(Glu ~ pathways * group, data = data)
+summary(mod.p)
+
+mod.b <- lm(Glu ~ bp * group, data = data)
+summary(mod.b)
+
+mod.g <- lm(Glu ~ genes * group, data = data)
+summary(mod.g)
+
+# Low BGE Group
+mod1 <- lm(Glu ~ pathways, data = data[data$group == "A", ])
 summary(mod1)
 
+# High BGE Group
 mod2 <- lm(Glu ~ pathways, data = data[data$group == "B", ])
 summary(mod2)
 
 t.test(data$pathways ~ data$group)
+aggregate(data$pathways, list(group = data$group), 
+          function(x) c(avg = mean(x), se = se(x)))
+```
 
+## Composition of Pathways
+```{r}
 # Permanova
 str(maple)
-maple2 <- maple[BGE4$Organism, ]
+maple2 <- maple[which(rownames(maple) %in% BGE4$Organism), ]
 maple2 <- maple2[, which(colSums(maple2) > 0)]
 
-rownames(maple2) == data$Organism
+all.equal(rownames(maple2), data$Organism)
 
 t.test(rowSums(maple2) ~ data$group)
 
 adonis(maple2 ~ as.factor(data$group), method = "bray")
+maple.dist <- vegdist(maple2, method = "bray", binary = T)
+maple.beta <- betadisper(maple.dist, as.factor(data$group))
+anova(maple.beta)
+maple.beta
+maple.beta
 
-library(labdsv)
-inds <- indval(maple2, data$group)
+# No evidence of differences based on permanova
+# using betadispersion, there are differences, but tey seem to be from two of the isolates. Likely this has nothing to do with BGE. 
+
+
+all.equal(rownames(maple2), data$Organism)
+adonis(maple2 ~ BGE4$Glu * as.factor(data$group), method = "bray")
+# Not significant
+
+adonis(maple2 ~ as.factor(data$group), method = "bray")
+
+inds <- indval(maple2, as.factor(data$group)) 
 summary(inds)
 
-
-# Just in group B
+# Just in the high-BGE group
 mapleB <- maple2[data$group == "B", ]
 BGE_glu_B <- BGE4$Glu[data$group == "B"]
-
-adonis(mapleB ~ BGE_glu_B, method = "bray")
 
 # Calculate Bray-Curtis Distances for Genomes
 mapleB.bray <- vegdist(mapleB, "bray")
@@ -540,11 +631,9 @@ summary(BGE.dbRDA.B)
 RsquareAdj(BGE.dbRDA.B)
 anova(BGE.dbRDA.B)
 
-# Just in group A
+# Just in group low BGE group
 mapleA <- maple2[data$group == "A", ]
 BGE_glu_A <- BGE4$Glu[data$group == "A"]
-
-adonis(mapleA ~ BGE_glu_A, method = "bray")
 
 # Calculate Bray-Curtis Distances for Genomes
 mapleA.bray <- vegdist(mapleA, "bray")
@@ -556,183 +645,19 @@ summary(BGE.dbRDA.A)
 RsquareAdj(BGE.dbRDA.A)
 anova(BGE.dbRDA.A)
 
-# Pathways Scores
-pathway.scores <- data.frame(matrix(NA, 108, 2))
+# Pathways Scores for high BGE
+pathway.scores <- data.frame(matrix(NA, dim(mapleB)[2], 2))
 colnames(pathway.scores) <- c("pathway", "cor")
-pathway.scores[,1] <- colnames(mapleA)
-for (i in 1:108){
-  pathway.scores[i,2] <- cor(BGE_glu_A,mapleA[,i], method = "spearman")
+pathway.scores[,1] <- colnames(mapleB)
+for (i in 1:dim(mapleB)[2]){
+  pathway.scores[i,2] <- cor(BGE_glu_B,mapleB[,i], method = "spearman")
   #pathway.scores[i,2] <- cor(BGE.dbRDA.B$CCA$wa,mapleB[,i], method = "spearman")
 }
 
 sig.path <- pathway.scores[which(abs(pathway.scores$cor) >= 0.70), ]
 sig.path
 
-
-
-
-
-# Group Differences
-growth.bge
-growth.bge$group
-
-groups <- growth.bge[which(!is.na(growth.bge$BGE_Glu)), c(1, 7)]
-maple.raw <- read.delim("../data/Maple/maple.txt", header = T, row.names = 1)
-maple80 <- (maple.raw >= 80) * 1
-maple60 <- (maple.raw >= 60) * 1
-
-maplePA <- maple80[, which(colSums(maple80) >=1)]
-maple1 <- maple80[which(rownames(maple80) %in% groups$Organism), ]
-maple1 <- maple1[, which(colSums(maple1) >=1)]
-maple2 <- maple60[which(rownames(maple60) %in% groups$Organism), ]
-maple2 <- maple2[, which(colSums(maple2) >= 1)]
-rownames(maple1)
-setdiff(as.character(groups$Organism), rownames(maple1))
-setdiff(rownames(maple1), as.character(groups$Organism))
-
-
-t.test(rowSums(maplePA) ~ groups$group, var.equal = T)
-
-groups <- data.frame(Organisms = BGE$Organism[which(!is.na(BGE$BGE_Glu))], group = NA)
-for (i in 1:dim(groups)[1])
-  if (!is.na(BGE$BGE_Glu[groups$Organisms[i]])){
-if (BGE$BGE_Glu[groups$Organisms[i]] < 0.05){
-  groups$group[i] <- "A"
-} else {
-  groups$group[i] <- "B"
-}} else {}
-
-adonis(maple1 ~ as.factor(groups$group), method = "bray")
-
-library(labdsv)
-inds <- indval(maple1, groups$group)
-summary(inds)
-
-# Group A
-# M00168 CAM (Crassulacean acid metabolism), dark
-# M00169 CAM (Crassulacean acid metabolism), light
-
-# Group B
-# M00124 Pyridoxal biosynthesis, erythrose-4P => pyridoxal-5P
-# M00045 Histidine degradation, histidine => N-formiminoglutamate => glutamate
-# M00565 Trehalose biosynthesis, D-glucose 1P => trehalose
-
-
-inds <- indval(maple2, groups$group)
-summary(inds)
-
-# Just in group B
-mapleB <- maple[groups$Organisms[groups$group == "B"], ]
-BGE_glu_B <- BGE$BGE_Glu[groups$Organisms[groups$group == "B"]]
-
-adonis(mapleB ~ BGE_glu_B, method = "bray")
-
-# Calculate Bray-Curtis Distances for Genomes
-mapleB.bray <- vegdist(mapleB, "bray")
-
-# BGE dbRDA 
-BGE.dbRDA.B <- capscale(mapleB.bray ~ BGE_glu_B, comm = mapleB, 
-                      add = T, na.action = na.exclude)
-summary(BGE.dbRDA.B)
-RsquareAdj(BGE.dbRDA.B)
-anova(BGE.dbRDA.B)
-
-# DOM Scores
-pathway.scores <- data.frame(matrix(NA, 108, 2))
-colnames(pathway.scores) <- c("pathway", "cor")
-pathway.scores[,1] <- colnames(mapleB)
-for (i in 1:108){
-  pathway.scores[i,2] <- cor(BGE_glu_B,mapleB[,i], method = "spearman")
-  #pathway.scores[i,2] <- cor(BGE.dbRDA.B$CCA$wa,mapleB[,i], method = "spearman")
-}
-
-sig.path <- pathway.scores[which(abs(pathway.scores$cor) >= 0.70), ]
-
-# Positive
-# M00173 Reductive citrate cycle (Arnon-Buchanan cycle)
-# M00579 Phosphate acetyltransferase-acetate kinase pathway, acetyl-CoA => acetate
-# M00632 Galactose degradation, Leloir pathway, galactose => alpha-D-glucose-1P
-# M00064 ADP-L-glycero-D-manno-heptose biosynthesis
-# M00554 Nucleotide sugar biosynthesis, galactose => UDP-galactose
-# M00565 Trehalose biosynthesis, D-glucose 1P => trehalose
-# M00017 Methionine biosynthesis, apartate => homoserine => methionine
-# M00027 GABA (gamma-Aminobutyrate) shunt
-# M00117 Ubiquinone biosynthesis, prokaryotes, chorismate => ubiquinone
-# M00116 Menaquinone biosynthesis, chorismate => menaquinone
-# M00140 C1-unit interconversion, prokaryotes
-
-# Negative
-# M00004 Pentose phosphate pathway (Pentose phosphate cycle)
-# M00008 Entner-Doudoroff pathway, glucose-6P => glyceraldehyde-3P + pyruvate
-# M00552 D-galactonate degradation, De Ley-Doudoroff pathway, D-galactonate => glycerate-3P
-# M00119 Pantothenate biosynthesis, valine/L-aspartate => pantothenate
-# M00122 Cobalamin biosynthesis, cobinamide => cobalamin
-
-
-
-
-
-
-
-
-
-
-
-
-maple.raw <- read.delim("../data/Maple/maple.txt", header = T, row.names = 1)
-maple <- (maple.raw >= 80) * 1
-maple <- maple[BGE$Organism,which(colSums(maple) > 1)]
-
-maple2 <- maple[-c(which(is.na(BGE$BGE_Glu))),]
-maple2 <- maple2[,which(colSums(maple2) > 1)]
-
-# Calculate Bray-Curtis Distances for Genomes
-maple.bray <- vegdist(maple, "bray")
-
-# BGE dbRDA 
-BGE.dbRDA <- capscale(maple.bray ~ BGE$BGE_Glu, comm = maple, 
-                      add = T, na.action = na.exclude)
-summary(BGE.dbRDA)
-RsquareAdj(BGE.dbRDA)
-anova(BGE.dbRDA)
-str(BGE.dbRDA$CCA$wa)
-str(maple2)
-
-
-# DOM Scores
-pathway.scores <- data.frame(matrix(NA, 94, 2))
-colnames(pathway.scores) <- c("pathway", "cor")
-pathway.scores[,1] <- colnames(maple2)
-for (i in 1:86){
-  pathway.scores[i,2] <- cor(BGE.dbRDA$CCA$wa,maple2[,i], method = "spearman")
-}
-
-sig.path <- pathway.scores[which(abs(pathway.scores$cor) > 0.70), ]
-
-plot(BGE.dbRDA$CCA$wa, na.omit(BGE$BGE_Glu))
-
-# Neg
-# M00169	Pathway	CAM (Crassulacean acid metabolism), light
-
-# Pos
-# M00045	Pathway	Histidine degradation, histidine => N-formiminoglutamate => glutamate
-# M00124	Pathway	Pyridoxal biosynthesis, erythrose-4P => pyridoxal-5P
-# M00133	Pathway	Polyamine biosynthesis, arginine => agmatine => putrescine => spermidine
-
-sum(maple2[,"M00169"] > 0)
-plot(maple2[,"M00169"],na.omit(BGE$BGE_Glu))
-
-sum(na.omit(BGE$BGE_Glu) < 0.01)
-
-
-
-
 ```
-
-
-
-
-
 
 
 
@@ -750,6 +675,7 @@ if (BGE4$Glu[i] < 0.05){
   BGE4$Group[i] <- "B"
 }} else {}
 
+all.equal(as.character(BR$Organism), rownames(BGE4))
 
 Phys <- data.frame(Organism = BR$Organism,
                    RespGlu = BR$Glu_mean, RespSuc = BR$Suc_mean, 
@@ -760,14 +686,34 @@ Phys <- data.frame(Organism = BR$Organism,
                    BGEPro = BGE4$Pro,
                    Group = BGE4$Group)
 
+Phys.full <- data.frame(Organism = rep(BGE4$Organism, 3), 
+                        Group = rep(BGE4$Group, 3),
+                        Resource = c(rep("Glu", dim(BR)[1]),
+                                     rep("Suc", dim(BR)[1]),
+                                     rep("Pro", dim(BR)[1])),
+                        Resp = c(BR$Glu_mean, BR$Suc_mean, BR$Pro_mean),
+                        Prod = c(BP$Glu_mean, BP$Suc_mean, BP$Pro_mean),
+                        BGE = c(BGE4$Glu, BGE4$Suc, BGE4$Pro))
+
 # Full Model
-mod1 <- lm(log1p(ProdGlu) ~ log1p(RespGlu) * Group, data = Phys)
+mod1 <- glm(log10(Resp) ~ (log10(Prod) + Group + Resource)^2, data = Phys.full)
 summary(mod1)
 
+mod2 <- glm(log1p(Resp) ~ log1p(Prod) * Resource, data = Phys.full)
+summary(mod2)
+
+mod3 <- glm(log1p(Resp) ~ log1p(Prod) * Group, data = Phys.full)
+summary(mod3)
+
+mod4 <- glm(log1p(Resp) ~ log1p(Prod), data = Phys.full)
+summary(mod4)
+
 # Independent Models
-modA <- lm(log1p(ProdGlu) ~ log1p(RespGlu), data = Phys[Phys$Group == "A", ])
+modA <- glm(log1p(Resp) ~ log1p(Prod), 
+           data = Phys.full[Phys.full$Group == "A", ])
 summary(modA)
-modB <- lm(log1p(ProdGlu) ~ log1p(RespGlu), data = Phys[Phys$Group == "B", ])
+modB <- glm(log1p(Resp) ~ log1p(Prod), 
+           data = Phys.full[Phys.full$Group == "B", ])
 summary(modB)
 
 Phys2 <- Phys
@@ -816,7 +762,7 @@ Phys.l.b$Resp <- 10*exp(Phys.l.b$Resp)
 Phys.l.b$Prod <- 10*exp(Phys.l.b$Prod)
 Phys.l.b$BGE <- 10*exp(Phys.l.b$BGE)
 
-mod1 <- lm(Resp ~ (Prod + Res + Group)^2, data = Phys.l2)
+mod1 <- lm(Prod ~ (Resp + Res + Group)^2, data = Phys.l2)
 summary(mod1)
 
 ttest <- function(reg, coefnum, val){
@@ -832,83 +778,89 @@ ttest(mod1, 2, 1)
 
 ```
 
-
+## Figure 3
 ```{r, results = "hide"}
-png(filename="../figures/Figure5.png",
-    width = 1200, height = 1200, res = 96*2, bg = "white")
+#png(filename="../figures/Figure_3.png",
+#    width = 1200, height = 1200, res = 96*2, bg = "white")
+setEPS()
+postscript("../figures/Figure_3.eps", width=6, height=6, bg = "white")
+
 par(opar)
-
-
 par(mar = c(6,6,1,1) + 0.5)
-groupA1 <- lm(Resp ~ Prod, 
-              data = Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Glu", ])
-groupB1 <- lm(Resp ~ Prod, 
-              data = Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Glu", ])
-groupA <- lm(Resp ~ Prod, data = Phys.l2[Phys.l2$Group == "A", ])
-groupB <- lm(Resp ~ Prod, data = Phys.l2[Phys.l2$Group == "B", ])
-groupA.b <- lm(Resp ~ Prod, data = Phys.l.b[Phys.l.b$Group == "A", ])
-groupB.b <- lm(Resp ~ Prod, data = Phys.l.b[Phys.l.b$Group == "B", ])
-pred.frameA <- data.frame(Prod = seq(-3.2, 1.5, by = 0.1))
-pred.frameB <- data.frame(Prod = seq(-0.5, 2, by = 0.1))
-pred.frameC <- data.frame(Prod = seq(-3, -0.5, by = 0.1))
-pred.frameD <- data.frame(Prod = seq(-7, -3.2, by = 0.1))
 
-plot(Resp ~ Prod, Phys.l2, axes = F, type = "n",
+Phys.l2$Prod[which(Phys.l2$Prod < -2.8)] <- NA
+
+mod1 <- lm(Prod ~ (Resp + Group + Res)^2, data = Phys.l2)
+summary(mod1)
+ttest(mod1, 2, 1)
+
+groupA <- lm(Prod ~ Resp, data = Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Glu", ])
+groupB <- lm(Prod ~ Resp, data = Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Glu", ])
+pred.frameA <- data.frame(Resp = seq(0.65, 3.2, by = 0.01))
+pred.frameB <- data.frame(Resp = seq(0.38, 2.68, by = 0.01))
+
+plot(Prod ~ Resp, Phys.l2, axes = F, type = "n",
      xlab = "", ylab = "",
-     xlim = c(-4, 2.2), ylim = c(-1,3.4), las = 1,
+     xlim = c(0.35,3.3), ylim = c(-3, 2.4), las = 1,
      pch = 22, bg = "gray", lwd = 2, cex = 1.5)
-add.hull(groupA1, pred.frameA)
-matlines(pred.frameA, predict(groupA1, interval = "c", newdata=pred.frameA),
+
+
+add.hull(groupA, pred.frameA)
+matlines(pred.frameA, predict(groupA, interval = "c", newdata=pred.frameA),
         lty=c(2,3,3), lwd=c(4,2,2), col="black") 
-add.hull(groupB1, pred.frameB)
-matlines(pred.frameB, predict(groupB1, interval = "c", newdata=pred.frameB),
+add.hull(groupB, pred.frameB)
+matlines(pred.frameB, predict(groupB, interval = "c", newdata=pred.frameB),
          lty=c(2,3,3), lwd=c(4,2,2), col="black")  
 
-matlines(pred.frameC, predict(groupB1, interval = "c", newdata=pred.frameC),
-         lty=c(2,0,0), lwd=c(2,0,0), col="black")
-matlines(pred.frameD, predict(groupA1, interval = "c", newdata=pred.frameD),
-         lty=c(2,0,0), lwd=c(2,0,0), col="black")
 
-points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Glu", ],
-       pch = 22, bg = "gray80", lwd = 2, 
-       cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Glu"] * 5) 
-points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Glu", ],
-       pch = 24, bg = "gray80", lwd = 2, 
-       cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Glu"] * 5) 
+points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Glu", ],
+       pch = 22, bg = "gray90", lwd = 2, 
+       cex = 10^c(Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Glu"]) * 1.2) 
+points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Glu", ],
+       pch = 24, bg = "gray90", lwd = 2, 
+       cex = 10^c(Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Glu"]) * 1.2) 
 
-points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Suc", ],
+points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Suc", ],
        pch = 22, bg = "gray60", lwd = 2, 
-       cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Suc"] * 5) 
-points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Suc", ],
+       cex = 10^c(Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Suc"]) * 1.2) 
+points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Suc", ],
        pch = 24, bg = "gray60", lwd = 2, 
-       cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Suc"] * 5) 
+       cex = 10^c(Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Suc"]) * 1.2) 
 
-points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Pro", ],
-       pch = 22, bg = "gray40", lwd = 2, 
-       cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Pro"] * 5) 
-points(Resp ~ Prod, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Pro", ],
-       pch = 24, bg = "gray40", lwd = 2, 
-       cex = 1.2 + Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Pro"] * 5) 
+points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "A" & Phys.l2$Res == "Pro", ],
+       pch = 22, bg = "gray20", lwd = 2, 
+       cex = 10^c(Phys.l2$BGE[Phys.l2$Group == "A" & Phys.l2$Res == "Pro"]) * 1.2) 
+points(Prod ~ Resp, Phys.l2[Phys.l2$Group == "B" & Phys.l2$Res == "Pro", ],
+       pch = 24, bg = "gray20", lwd = 2, 
+       cex = 10^c(Phys.l2$BGE[Phys.l2$Group == "B" & Phys.l2$Res == "Pro"]) * 1.2)
 
-abline(v = 0)
-abline(h = 1)
-abline(h = 0)
+#text(-3.8, 0.52, paste("*", round(groupA1$coefficients[1], 2), sep = ""), cex = 1.2)
+#text(-2, -1, paste("*", round(groupB1$coefficients[1], 2), sep = ""), , cex = 1.2) 
 
-text(-3.8, 0.52, paste("*", round(groupA1$coefficients[1], 2), sep = ""), cex = 1.2)
-text(-2, -1, paste("*", round(groupB1$coefficients[1], 2), sep = ""), , cex = 1.2) 
+axis(1, lwd = 2, labels = c(2, 10, 100, 1000), 
+     at = c(log10(c(2,10,100,1000))), las = 1)
+axis(1, lwd = 2, labels = F, tck = 0.02, 
+     at = c(log10(c(2,10,100,1000))), las = 1)
 
-axis(1, lwd = 2, labels = c(0.001, 0.1, 100), at = c(seq(-3, 2, 2)), las = 1)
-axis(2, lwd = 2, labels = c(0.01, 0.1, 1, 10, 100, 1000), at = c(seq(-2, 3, 1)), las = 1)
-axis(1, lwd = 2, labels = F, tck = 0.02, at = c(seq(-3, 3, 2)), las = 1)
-axis(2, lwd = 2, labels = F, tck = 0.02, at = c(seq(-2, 3, 1)), las = 1)
-axis(3, lwd = 2, labels = F, tck = -0.02, at = c(seq(-3, 3, 2)), las = 1)
-axis(4, lwd = 2, labels = F, tck = -0.02, at = c(seq(-2, 3, 1)), las = 1)
-axis(3, lwd = 2, labels = F, tck = 0.02, at = c(seq(-3, 3, 2)), las = 1)
-axis(4, lwd = 2, labels = F, tck = 0.02, at = c(seq(-2, 3, 1)), las = 1)
-mtext("Respiration Rate", side = 2, line = 4.5, cex = 1.5)
+axis(2, lwd = 2, labels = c(0.001, 0.01, 0.1, 1, 10, 100), 
+     at = c(log10(c(0.001, 0.01, 0.1, 1, 10, 100))), las = 1)
+axis(2, lwd = 2, labels = F, tck = 0.02, 
+    at = c(log10(c(0.001, 0.01, 0.1, 1, 10, 100))), las = 1)
+
+axis(3, lwd = 2, labels = F, tck = -0.02, 
+     at = c(log10(c(2,10,100,1000))), las = 1)
+axis(3, lwd = 2, labels = F, tck = 0.02, 
+     at = c(log10(c(2,10,100,1000))), las = 1)
+
+axis(4, lwd = 2, labels = F, tck = -0.02, 
+     at = c(log10(c(0.001, 0.01, 0.1, 1, 10, 100))), las = 1)
+axis(4, lwd = 2, labels = F, tck = 0.02, 
+     at = c(log10(c(0.001, 0.01, 0.1, 1, 10, 100))), las = 1)
+
+mtext("Production Rate", side = 2, line = 4.5, cex = 1.5)
 mtext(expression(paste("(pmole C cell"^-1, "hr"^-1, ")")), 
                        side = 2, line = 3, cex = 1)
-mtext("Production Rate", side = 1, line = 2.5, cex = 1.5)
+mtext("Respiration Rate", side = 1, line = 2.5, cex = 1.5)
 mtext(expression(paste("(pmole C cell"^-1, "hr"^-1, ")")), 
                        side = 1, line = 4, cex = 1)
 box(lwd = 2)
@@ -918,20 +870,24 @@ legend("bottomright", c("High BGE Group", "Low BGE Group"),
        pch = c(24, 22), pt.bg = "gray", pt.cex = 1, pt.lwd = 2, 
        bty = "n", cex = 0.8, inset = 0.05)
 legend("topleft", c("Glucose", "Succinate", "Protocatechuate"), 
-       pch = 22, pt.bg = c("gray80", "gray60", "gray40"), pt.cex = 1, pt.lwd = 2, 
+       pch = 22, pt.bg = c("gray90", "gray60", "gray20"), 
+       pt.cex = 1, pt.lwd = 2, 
        bty = "n", cex = 0.8, inset = 0.05)
+
+text(x = 2.7, y = 2.12, "high", cex = 1.25, srt = 29)
+text(x = 3.18, y = 0.965, "low", cex = 1.25, srt = 31)
 
 
 dev.off() # this writes plot to folder
 graphics.off() # shuts down open devices
-# ```
+```
 
-# ```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="BGE"}
-img <- readPNG("../figures/Figure5.png")
+```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="BGE"}
+img <- readPNG("../figures/Figure_3.png")
 grid.raster(img)
 ```
 
-
+## Extra Figure
 ```{r, results='hide'}
 png(filename="../figures/AllResources.png",
     width = 800, height = 1800, res = 96*2, bg = "white")
@@ -1096,35 +1052,4 @@ nodelabels(tree.rooted$node.label, font = 2, bg = "white",
            frame = "none", cex = 0.4, adj = c(1.2, 1.2), col = "red")
 ```
 
-## BGE Distribution
-```{r, results = "hide"}
-png(filename="../figures/Density.png",
-    width = 1200, height = 800, res = 96*2, bg = "white")
-par(opar)
 
-dip.test(na.omit(BGE2[,1]), simulate.p.value = T)
-
-par(mar = c(4, 4, 1, 1) + 0.5)
-plot(density(na.omit(BGE2[,1])), main = "",
-     ylab = "", cex.lab = 1.25, 
-     cex = 1.5, las = 1, lwd = 2, cex.axis = 1.25)
-axis(1, lwd = 2, labels = F, las = 1, cex = 1.25)
-axis(2, lwd = 2, labels = F, las = 1, cex = 1.25)
-axis(1, lwd = 2, labels = F, tck = 0.02, las = 1)
-axis(2, lwd = 2, labels = F, tck = 0.02, las = 1)
-axis(3, lwd = 2, labels = F, tck = -0.02, las = 1)
-axis(4, lwd = 2, labels = F, tck = -0.02, las = 1)
-axis(3, lwd = 2, labels = F, tck = 0.02, las = 1)
-axis(4, lwd = 2, labels = F, tck = 0.02, las = 1)
-mtext("Density", side = 2, line = 2.5, cex = 1.5)
-box(lwd = 2)
-
-
-dev.off() # this writes plot to folder
-graphics.off() # shuts down open devices
-#```
-
-#```{r fig.width=4, fig.height=4,echo=FALSE,fig.cap="Kernel Density Plot"}
-img <- readPNG("../figures/Density.png")
-grid.raster(img)
-```
