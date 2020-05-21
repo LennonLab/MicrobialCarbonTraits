@@ -72,7 +72,7 @@ pathways <- c(dim(HMWF001.maple)[1], dim(HMWF003.maple)[1], dim(HMWF004.maple)[1
 length(pathways) == length(strains)
 length(unique(pathways))
 
-maple.pathways <- matrix(NA, 305, 5)
+maple.pathways <- matrix(NA, unique(pathways), 5)
 all.equal(HMWF001.maple$ID, HMWF003.maple$ID)
 maple.pathways <- HMWF001.maple[, c(1:3, 5)]
 
@@ -82,11 +82,11 @@ write.table(maple.pathways, "./data/pathways.txt",
             row.names = F, quote = F, sep = "\t")
 
 
-MCR <- as.data.frame(matrix(NA, 30, 305))
+MCR <- as.data.frame(matrix(NA, length(strains), unique(pathways)))
 rownames(MCR) <- strains
 colnames(MCR) <- maple.pathways$ID
 
-for(i in 1:30){
+for(i in 1:length(strains)){
   temp.name <- paste(strains[i], "maple", sep = ".")
   temp <- get(temp.name)
   if(all.equal(as.character(temp$ID), colnames(MCR))){
@@ -96,11 +96,11 @@ for(i in 1:30){
   }
 }
 
-Q.val <- as.data.frame(matrix(NA, 30, 305))
+Q.val <- as.data.frame(matrix(NA, length(strains), unique(pathways)))
 rownames(Q.val) <- strains
 colnames(Q.val) <- maple.pathways$ID
 
-for(i in 1:30){
+for(i in 1:length(strains)){
   temp.name <- paste(strains[i], "maple", sep = ".")
   temp <- get(temp.name)
   if(all.equal(as.character(temp$ID), colnames(Q.val))){

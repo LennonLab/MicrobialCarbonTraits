@@ -54,7 +54,13 @@ This repository contains open-source code, data, & text files for the microbial 
   * *CarbonTraitsRespiration.R*:
 
 * **figures:**
-  * *OLD*: Directory with all of the old figures
+  * *OLD*: Directory with all of the old figures (remove soon)
+  * Figure1.png - Chemicals used in the incubations
+  * Figure2.png - Phylogenetic tree with BGE values
+  * Figure3.png - Physiological tradeoffs
+  * Figure4.png - Respiration / Production relationship
+  * FigureS1.png
+  * FigureS2.png
 
 
 * **analyses:**
@@ -69,9 +75,9 @@ This repository contains open-source code, data, & text files for the microbial 
 
 ## Contributors
 
-[Mario Muscarella](http://mmuscarella.github.io/): Ph.D. candidate in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). Conducted the experiments and analyzed the data
+[Mario Muscarella](http://mmuscarella.github.io/): Postdoctoral Fellow in the [del Giorgio Lab]() and Research Associate II in the Institute of Arctic Biology at the University of Alaska Fairbanks. Former Ph.D. candidate in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). Conducted the experiments and analyzed the data
 
-Xia Meng Howe: Undergraduate Researchers in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). Conducted the experiments
+Xia Meng Howe: Former undergraduate Researchers in the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). Conducted the experiments
 
 [Dr. Jay Lennon](http://www.indiana.edu/~microbes/people.php): Principle Investigator, Associate Professor, Department of Biology, Indiana University, Bloomington. Head of the [Lennon Lab](http://www.indiana.edu/~microbes/people.php). 
 

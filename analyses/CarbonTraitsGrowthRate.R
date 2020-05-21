@@ -1,6 +1,6 @@
 ################################################################################
 #                                                                              #
-#	HMWF Isolates Growth Rate                                    #
+#	HMWF Isolates Growth Rate                                                    #
 #   Parameter Estimate Code                                                    #
 #                                                                              #
 ################################################################################
@@ -30,16 +30,16 @@ dir.create("../data/GrowthCurves/output", showWarnings = FALSE)
 # Experimental Data
 growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_14hrs_130528_194247.txt", 
                output.name = "HMWF130528", 
-               output.dir = "../data/GrowthCurves/output/", skip=50)
+               output.dir = "../data/GrowthCurves/output/", skip=50, smooth = T, trim = T)
 growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_18hrs_130520_160724.txt", 
                output.name = "HMWF130520", 
-               output.dir = "../data/GrowthCurves/output/", skip=50)
+               output.dir = "../data/GrowthCurves/output/", skip=50, smooth = T, trim = T)
 growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_18hrs_130522_155343.txt", 
                output.name = "HMWF130522", 
-               output.dir = "../data/GrowthCurves/output/", skip=50)
+               output.dir = "../data/GrowthCurves/output/", skip=50, smooth = T, trim = T)
 growth.modGomp(input = "../data/GrowthCurves/GrowthCurve_18hrs_140402_170936.txt", 
                output.name = "HMWF140402", 
-               output.dir = "../data/GrowthCurves/output/", skip=50)
+               output.dir = "../data/GrowthCurves/output/", skip=50, smooth = T, trim = T)
 
 
 #g.conv <- read.delim("./data/ABS-Cells.txt", header = T)
