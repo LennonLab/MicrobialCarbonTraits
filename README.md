@@ -3,6 +3,9 @@ Microbial Carbon Traits
 
 This repository contains open-source code, data, & text files for the microbial carbon traits project currently titled: Trait-based approach to bacterial growth efficiency. 
 
+## Publication
+Muscarella, M.E., Howey, X.M. and Lennon, J.T. (2020), Trait‐based approach to bacterial growth efficiency. Environ Microbiol. Accepted Author Manuscript. doi:10.1111/1462-2920.15120
+
 ## Goals
 
 * **Aim 1.)** Determine metabolic profiles of HMWF culture collection using BioLog EcoPlates 
