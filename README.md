@@ -34,9 +34,9 @@ This repository contains open-source code, data, & text files for the microbial 
   * *GrowthCurves*: Directory with growth curve data and output
   * *Maple*: Directory with GenBank genome annotations and Maple output
   * *Phylogeny*: Directory with 16S sequences and RAxML phylogeny
-  * *Production*:
-  * *Respiration*:
-  * *RespiratoryQuotient*:
+  * *Production*: Raw data for bacterial production
+  * *Respiration*: Raw data for bacterial respiration
+  * *RespiratoryQuotient*: Raw CO2 data for RQ calculations
   * *16SrRNA.txt*: rRNA copy number data
   * *ABS-Cells.txt*: Absorbance to cell density values
   * *BGE_data.txt*: Growth efficiency output data
@@ -46,12 +46,12 @@ This repository contains open-source code, data, & text files for the microbial 
   * *umax.txt*: Maximum growth rate output data
 
 * **analyses:**
-  * *CarbonTraits.Rmd*: 
-  * *CarbonTraitsEcoPlate.R*:
-  * *CarbonTraitsGrowthRate.R*:
-  * *CarbonTraitsPreSens.R*:
-  * *CarbonTraitsProduction.R*:
-  * *CarbonTraitsRespiration.R*:
+  * *CarbonTraits.Rmd*
+  * *CarbonTraitsEcoPlate.R*
+  * *CarbonTraitsGrowthRate.R*
+  * *CarbonTraitsPreSens.R*
+  * *CarbonTraitsProduction.R*
+  * *CarbonTraitsRespiration.R*
 
 * **figures:**
   * *OLD*: Directory with all of the old figures (remove soon)
@@ -63,15 +63,13 @@ This repository contains open-source code, data, & text files for the microbial 
   * FigureS2.png
 
 
-* **analyses:**
-
-* **figures:**
-
-* **output:**
-
 ## Funding Sources  
-  1. Huron Mountain Wildlife Foundation Grant (# ) - Browning of freshwater ecosystems: Will terrestrial carbon loading alter the diversity and function of aquatic microbial communities?  
-  2. Indiana Academy of Sciences Grant (# 00375714) - Metabolic Fate of Terrestrial Carbon Resources
+  1. Huron Mountain Wildlife Foundation Grant (to JTL & MEM) - Browning of freshwater ecosystems: Will terrestrial carbon loading alter the diversity and function of aquatic microbial communities?  
+  2. Indiana Academy of Sciences Grant (# 00375714 to MEM) - Metabolic Fate of Terrestrial Carbon Resources
+  3. National Science Foundation (DEB‐0842441 to JTL, DEB‐1442246 to JTL and DEB‐1501164 to JTL & MEM)
+
+## Sequencing Data
+Isolate genomes are available on NCBI (BioProject PRJNA420393)
 
 ## Contributors
 
